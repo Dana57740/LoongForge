@@ -1570,7 +1570,12 @@ class _DistributedArgs:
     ddp_comm_hook: Optional[str] = field(
         default=None,
         metadata={
-            "choices": ["allreduce_hook", "fp16_compress_hook", "bf16_compress_hook"],
+            "choices": [
+                "allreduce_hook",
+                "fp16_compress_hook",
+                "bf16_compress_hook",
+                "fp8_a2a_allgather_hook",
+            ],
             "help": "DDP gradient communication hook.",
         },
     )
@@ -1579,6 +1584,36 @@ class _DistributedArgs:
         metadata={
             "help": "Wrap the DDP comm hook with rank-0 logging of bucket info "
                     "before/after each all-reduce."
+        },
+    )
+    ddp_comm_hook_fp8_block: int = field(
+        default=256,
+        metadata={
+            "help": "fp8_a2a_allgather_hook only. Elements per fp8 quantization "
+                    "block, i.e. per fp32 scale. Must be a power of two in "
+                    "[1, 1024]. Smaller tracks the local dynamic "
+                    "range more tightly but costs 4/block extra bytes on the wire "
+                    "(1.6% at 256)."
+        },
+    )
+    ddp_comm_hook_fp8_min_mib: float = field(
+        default=8.0,
+        metadata={
+            "help": "fp8_a2a_allgather_hook only. Buckets smaller than this fall "
+                    "back to plain AllReduce, since two collectives plus four "
+                    "kernels do not pay for themselves on a few MiB. 0 quantizes "
+                    "every bucket."
+        },
+    )
+    ddp_comm_hook_fp8_max_scratch_gb: float = field(
+        default=24.0,
+        metadata={
+            "help": "fp8_a2a_allgather_hook only. Total resident comm scratch "
+                    "across all buckets, roughly 1.15x each bucket. Buckets that "
+                    "do not fit degrade to full-precision AllReduce rather than "
+                    "failing the run, so 0 degrades every bucket and disables the "
+                    "hook. Raise it to quantize more buckets; there is no value "
+                    "that removes the cap."
         },
     )
     dynamo_optimize_ddp: bool = field(

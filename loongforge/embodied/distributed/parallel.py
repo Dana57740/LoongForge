@@ -16,6 +16,7 @@ from .activation_checkpointing import apply_activation_checkpointing
 from .context import DistributedContext
 
 from .ddp_utils import resolve_comm_hook
+from .ddp_utils import fp8_a2a_comm
 from .fsdp_utils import (
     FSDPWrapContext,
     build_fsdp_device_mesh,
@@ -225,6 +226,18 @@ def _wrap_ddp(model: nn.Module, training_args, ctx: DistributedContext, dtype: t
 
     ddp_model = DDP(model, **filter_kwargs(DDP, ddp_kwargs))
     if training_args.ddp_comm_hook:
+        if training_args.ddp_comm_hook == "fp8_a2a_allgather_hook":
+            # Preflight here, not in the hook: an unsupported device, backend or
+            # compute capability would otherwise only surface as a Triton
+            # compile error inside the reducer at the first backward.
+            fp8_a2a_comm.validate_runtime(ctx.device, ctx.backend)
+            # DDP fixes the comm-hook signature at (state, bucket), so the hook's
+            # tunables are applied to the module before it is registered.
+            fp8_a2a_comm.configure(
+                block=training_args.ddp_comm_hook_fp8_block,
+                min_mib=training_args.ddp_comm_hook_fp8_min_mib,
+                max_scratch_gb=training_args.ddp_comm_hook_fp8_max_scratch_gb,
+            )
         comm_hook = resolve_comm_hook(
             training_args.ddp_comm_hook,
             use_logging=training_args.ddp_comm_hook_logging,

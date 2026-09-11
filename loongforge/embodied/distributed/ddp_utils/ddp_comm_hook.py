@@ -13,6 +13,7 @@ from torch.distributed.algorithms.ddp_comm_hooks.default_hooks import (
 )
 
 from ..utils import is_rank_zero
+from .fp8_a2a_comm import fp8_a2a_allgather_hook
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ _SUPPORTED_COMM_HOOKS = {
     "allreduce_hook": allreduce_hook,
     "fp16_compress_hook": fp16_compress_hook,
     "bf16_compress_hook": bf16_compress_hook,
+    "fp8_a2a_allgather_hook": fp8_a2a_allgather_hook,
 }
 
 
