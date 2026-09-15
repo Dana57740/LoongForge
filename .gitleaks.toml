@@ -6,3 +6,12 @@
 
 [extend]
 useDefault = true
+
+# This is a serialized prediction schema key, not a credential. Keep the
+# exception scoped to the exact rule, path, and extracted value.
+[[allowlists]]
+description = "Known ego2robot prediction schema field"
+targetRules = ["generic-api-key"]
+paths = ['^loongforge/embodied/tools/ego2robot/steps/path_b\.py$']
+regexTarget = "secret"
+regexes = ['^keypoints_3d$']
