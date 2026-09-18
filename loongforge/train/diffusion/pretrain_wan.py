@@ -3,17 +3,15 @@
 
 """default pretrain for video diffusion model"""
 
-import os
 import torch
 from functools import partial
 
-from megatron.core import mpu, tensor_parallel
+from megatron.core import mpu
 from megatron.core.enums import ModelType
 from megatron.core.utils import StragglerDetector
 
 
 from megatron.training import get_timers
-from megatron.training.utils import average_losses_across_data_parallel_group
 
 from loongforge.utils import get_args, print_rank_0
 from loongforge.utils.constants import TrainingPhase, CustomModelFamilies
@@ -27,16 +25,13 @@ from loongforge.data.video.packed_dataset import (
     _patchify_latent,
 )
 
-from loongforge.models import get_model_provider, get_model_family
 from loongforge.models.diffusion.wan.wan_flow_match import FlowMatchScheduler
 from megatron.core.packed_seq_params import PackedSeqParams
 
 from loongforge.train.megatron_trainer import MegatronTrainer
 from loongforge.train.trainer_builder import register_model_trainer
-from torch.utils.data import BatchSampler, DataLoader, RandomSampler, Subset
 from megatron.core import parallel_state
 import numpy as np
-import math
 
 from loongforge.models.diffusion.wan.gaussian_diffusion import (
     ModelMeanType,
@@ -47,7 +42,6 @@ from loongforge.models.diffusion.wan.gaussian_diffusion import (
 )
 
 from loongforge.models.diffusion.wan.wan_utils import (
-    broadcast_on_tp_group,
     broadcast_on_cp_group,
 )
 from loongforge.models.diffusion.wan.wan_provider import wan_i2v_model_provider

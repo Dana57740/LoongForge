@@ -8,8 +8,7 @@ This module initializes Megatron-Core parallel_state with ParallelConfig
 and provides a unified interface to query rank information.
 """
 import os
-from typing import List, Tuple, Optional, Dict
-import torch
+from typing import List, Tuple, Optional
 import torch.distributed as dist
 
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -105,7 +104,7 @@ class TopoSharder:
         self._rank_topo_list: Optional[RankTopoList] = None
 
         # Print initialization info (only rank 0 will print)
-        print_rank_0(f"[TopoSharder] Initialized from parallel_state:")
+        print_rank_0("[TopoSharder] Initialized from parallel_state:")
         print_rank_0(f"  World size: {self.world_size}")
         print_rank_0(f"  TP size: {self.tp_size}, PP size: {self.pp_size}")
         print_rank_0(f"  EP size: {self.ep_size}, ETP size: {self.etp_size}")

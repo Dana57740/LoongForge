@@ -5,21 +5,15 @@
 
 from tasks.base_task import BaseTask, TaskResut
 from tools.color_logger import create_color_logger
-import os, time
-from copy import deepcopy
-import json, re, yaml
-import subprocess
 import os
+import json
+import yaml
 import sys
 import shutil
-import random
 from typing import Dict, List, Any
 
 logger = create_color_logger(name=__name__)
-import json
-import yaml
 import glob
-from datetime import timedelta
 
 class PrecessDataCheckTask(BaseTask):
     """PrecessDataCheckTask"""

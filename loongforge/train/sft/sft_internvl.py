@@ -3,14 +3,9 @@
 
 """ sft for internvl model """
 
-import torch.distributed as dist
 
-import math
-import numpy as np
 import os
 import torch
-import re
-import copy
 from functools import partial
 from datasets import load_from_disk
 from transformers import DataCollatorForSeq2Seq
@@ -20,12 +15,11 @@ from megatron.core import mpu, tensor_parallel
 from loongforge.train.get_loss_func import default_loss_func
 from megatron.core import parallel_state
 
-from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.utils import StragglerDetector
 from loongforge.utils import (get_args, get_tokenizer, get_model_config)
 from megatron.core.enums import ModelType
 from loongforge.utils import constants
-from loongforge.models import get_model_provider, get_model_family
+from loongforge.models import get_model_provider
 from loongforge.train.megatron_trainer import MegatronTrainer
 from loongforge.train.trainer_builder import register_model_trainer
 from loongforge.data.multimodal.internvl.internvl_task_encoder import InternVLTaskEncoder
@@ -36,7 +30,6 @@ from loongforge.train.sft.utils import (
 from loongforge.data.multimodal.dataloader_provider import (
     get_train_dataset,
     get_train_loader,
-    VLMPretrainCollator,
 )
 from loongforge.models.omni_models.omni_model_provider import (
     omni_model_provider,
@@ -191,7 +184,7 @@ def forward_step(data_iterator, model):
         ignore_flag = filter_ignore_data(input_ids, image_flags, image_token_id,
                                             num_image_token)
         if ignore_flag:
-            print(f"filter_ignore_data get True, skip current microbatch...")
+            print("filter_ignore_data get True, skip current microbatch...")
             output_tensor = output_tensor * 0.0
 
     # print(f"packed_seq_params:{packed_seq_params}")

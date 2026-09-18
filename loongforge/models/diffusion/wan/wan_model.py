@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch import Tensor
 
 import math
-from typing import Tuple, Dict, Literal, Optional, Any
+from typing import Tuple, Literal, Optional, Any
 from einops import rearrange
 from megatron.core.models.common.vision_module.vision_module import VisionModule
 from megatron.core.transformer.spec_utils import ModuleSpec
@@ -23,7 +23,6 @@ from megatron.core.parallel_state import (
     get_context_parallel_group,
 )
 from megatron.core import parallel_state
-from megatron.core.packed_seq_params import PackedSeqParams
 from torch.amp import autocast
 
 
@@ -409,9 +408,9 @@ class WanModel(VisionModule):
             rotary_pos_cos = freqs.real.squeeze(1).contiguous()
             rotary_pos_sin = freqs.imag.squeeze(1).contiguous()
 
-            x = rearrange(x, f"B S C ->S B C").contiguous()
-            timestep_mod = rearrange(timestep_mod, f"B S C ->S B C").contiguous()
-            context = rearrange(context, f"B S C ->S B C").contiguous()
+            x = rearrange(x, "B S C ->S B C").contiguous()
+            timestep_mod = rearrange(timestep_mod, "B S C ->S B C").contiguous()
+            context = rearrange(context, "B S C ->S B C").contiguous()
 
             if self.has_image_input and clip_feature is not None and self.require_clip_embedding:
                 context = torch.cat([clip_embedding, context], dim=0)
@@ -468,7 +467,7 @@ class WanModel(VisionModule):
 
         t = t_for_head.to(torch.bfloat16)
 
-        x = rearrange(x, f"S B C ->B S C").contiguous()
+        x = rearrange(x, "S B C ->B S C").contiguous()
         x = self.head(x, t)
 
         if self.config.context_parallel_size > 1:

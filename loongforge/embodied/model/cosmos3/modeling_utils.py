@@ -14,7 +14,6 @@ import numpy as np
 import torch
 from einops import rearrange, repeat
 from torch import nn
-from torch.distributed import ProcessGroup
 from transformers.activations import ACT2FN
 
 from .sequence_packing import ModalityData

@@ -6,7 +6,6 @@
 from functools import partial
 import torch
 from typing import List, Union
-import dataclasses
 from dataclasses import dataclass, asdict
 from typing_extensions import override
 from loongforge.data.multimodal import MultiMixQASample

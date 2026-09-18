@@ -15,10 +15,8 @@ from megatron.core.transformer.mlp import MLPSubmodules
 from megatron.core.transformer.moe.moe_layer import MoESubmodules
 from megatron.core.transformer.transformer_block import TransformerBlockSubmodules, get_num_layers_to_build
 from megatron.core.transformer.transformer_layer import TransformerLayerSubmodules, get_transformer_layer_offset
-from loongforge.models.common.local_layers.local_norm import LocalNorm
 from loongforge.models.dispatch import multiacc_modules
 from loongforge.models.encoder.ernie4_5_vl_vision_models.ernie_adapter import RMSNorm as _AdapterRMSNorm
-from loongforge.models.dispatch import multiacc_modules
 from .ernie_transformer_layer import TransformerLayerErnie
 from .ernie_config import ErnieMoeConfig
 from .ernie_moe_layer import ErnieMultiTypeMoE, MultiTypeMoeSubmodules, ErnieMoeLayer

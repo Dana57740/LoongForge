@@ -7,7 +7,6 @@
 
 """llavaov 1.5 layer spec."""
 
-import torch
 from megatron.core.extensions.transformer_engine import (
     TEDotProductAttention,
     TELayerNormColumnParallelLinear,

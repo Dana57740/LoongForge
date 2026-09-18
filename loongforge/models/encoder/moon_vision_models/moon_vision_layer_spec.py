@@ -26,7 +26,6 @@ from megatron.core.extensions.transformer_engine import (
     TENorm,
 )
 from loongforge.models.common.local_layers.local_norm import LocalNorm
-from loongforge.models.encoder.qwen3_vl_vision_models.rope_utils import apply_rotary_pos_emb
 
 
 @dataclass

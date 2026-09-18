@@ -227,9 +227,9 @@ class EagleBackbone(torch.nn.Module):
                 while len(self.model.language_model.layers) > select_layer:
                     self.model.language_model.layers.pop(-1)
             else:
-                print(f"Warning: Could not find layers in language_model structure")
+                print("Warning: Could not find layers in language_model structure")
         else:
-            print(f"Warning: model does not have language_model attribute")
+            print("Warning: model does not have language_model attribute")
 
         self.select_layer = select_layer
         self.set_trainable_parameters(tune_llm, tune_visual, tune_top_llm_layers)

@@ -34,7 +34,7 @@ import torch
 from PIL import Image
 from transformers import AutoImageProcessor
 from transformers import AutoTokenizer
-from typing import Any, Dict, List
+from typing import Dict, List
 from torchvision.transforms.functional import to_pil_image
 
 

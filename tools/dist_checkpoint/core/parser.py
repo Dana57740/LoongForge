@@ -7,7 +7,6 @@ import sys
 from typing import Union
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
-from omegaconf import OmegaConf
 import torch
 
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -197,7 +196,7 @@ def get_module_convert_file(model_cfg, module_type):
             return model_cfg.model.image_projector.convert_file
         else:  # foundation
             return model_cfg.model.foundation.convert_file
-    except AttributeError as e:
+    except AttributeError:
         # Debug: print what's available
         print(f"DEBUG: Failed to get convert_file for {module_type}")
         print(f"DEBUG: model_cfg.model keys: {list(model_cfg.model.keys()) if hasattr(model_cfg, 'model') else 'no model'}")

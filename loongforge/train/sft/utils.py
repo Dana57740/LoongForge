@@ -4,11 +4,9 @@
 """utils for sft"""
 
 import logging
-import math
 from collections import deque, defaultdict, namedtuple
 
 from typing import TYPE_CHECKING, List, Optional, Union, Any, Type, Dict
-from dataclasses import dataclass
 import os
 import torch
 from torch.utils.data import DataLoader

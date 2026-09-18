@@ -4,7 +4,7 @@
 """register qwen model with different config"""
 
 import torch
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 
 from megatron.core.activations import quick_gelu
 from ...common.base_model_config import BaseModelConfig

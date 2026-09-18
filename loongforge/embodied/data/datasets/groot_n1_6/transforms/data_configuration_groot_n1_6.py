@@ -28,7 +28,7 @@ reads them from the ``model_cfg`` instance passed alongside this ``DataConfig``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 
 @dataclass(frozen=True)

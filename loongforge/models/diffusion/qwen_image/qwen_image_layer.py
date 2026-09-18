@@ -25,7 +25,6 @@ from typing import Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
-from einops import rearrange
 
 from megatron.core.process_groups_config import ProcessGroupCollection
 from megatron.core.transformer.enums import AttnMaskType

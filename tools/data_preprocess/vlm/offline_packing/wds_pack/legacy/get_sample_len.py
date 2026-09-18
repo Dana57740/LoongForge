@@ -9,8 +9,6 @@ import logging
 import tempfile
 import threading
 import multiprocessing
-import argparse
-import yaml
 from pathlib import Path
 from jinja2 import Template
 from collections import defaultdict
@@ -21,7 +19,7 @@ from typing import List, Dict, Tuple, Optional, Union, Generator, Callable
 from heapq import merge
 from natsort import natsorted
 from queue import Empty
-from multiprocessing import Pool, Manager, Value
+from multiprocessing import Pool, Manager
 import psutil
 
 from wds_pack.media import preprocess as media_preprocess_utils
@@ -852,7 +850,7 @@ def main():
 
     # Pipeline: record_samples_to_file → process_chunk → merge_by_batch → merge_files_by_token
     try:
-        logger.info(f"--------------Starting data processing pipeline--------------")
+        logger.info("--------------Starting data processing pipeline--------------")
 
         # 1. Collect samples from webdataset_dir and record to sample_record
         sample_names = find_sample_names(wds_dir)

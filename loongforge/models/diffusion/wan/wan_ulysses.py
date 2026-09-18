@@ -15,7 +15,6 @@ from torch.nn import Module
 import torch.distributed as dist
 
 from megatron.core.packed_seq_params import PackedSeqParams
-from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.transformer.transformer_config import TransformerConfig
 
 

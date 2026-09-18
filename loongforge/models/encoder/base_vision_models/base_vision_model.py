@@ -24,7 +24,6 @@
 """VisionTransformer module"""
 
 import torch
-import torch.nn.functional as F
 from typing import Optional
 
 from megatron.core.transformer.enums import ModelType

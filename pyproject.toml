@@ -209,10 +209,28 @@ line-length = 120
 extend-exclude = ["third_party", "patches"]
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "E501", "F", "S506"]
+select = ["E4", "E7", "E9", "F", "S506"]
+# Rules that fight established codebase patterns, deliberately off (rationale in this PR):
+# E402 late bootstrap imports, E501 long lines, E731 lambda assignment, F841 unused locals.
+ignore = ["E402", "E501", "E731", "F841"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["F401", "F403"]
+# availability-probe and re-export imports that must not be deleted
+"loongforge/data/multimodal/ernie/utils/image_enhance.py" = ["F401"]
+"loongforge/models/common/base_model_mixins.py" = ["F401"]
+"loongforge/models/common/experimental_attention_variant/dsa_fused_kernels.py" = ["F401"]
+"loongforge/models/diffusion/wan/wan_attention.py" = ["F401"]
+"loongforge/models/encoder/internvl_vision_models/intern_vision_attention.py" = ["F401"]
+"loongforge/models/encoder/vision_transformer_block.py" = ["F401"]
+"loongforge/models/foundation/ernie4_5_vl/ernie_experts.py" = ["F401"]
+"loongforge/models/foundation/language_transformer_block.py" = ["F401"]
+"loongforge/models/foundation/qwen3_5/qwen3_5_layer_spec.py" = ["F401"]
+"loongforge/models/foundation/qwen3_next/gated_attention.py" = ["F401"]
+"loongforge/train/pretrain/pretrain_vlm.py" = ["F401"]
+"loongforge/train/sft/sft_internvl.py" = ["F401"]
+"loongforge/train/training_utils.py" = ["F401"]
+"loongforge/train/validators.py" = ["F401"]
 
 [tool.hatch.build]
 packages = ["loongforge"]

@@ -3,20 +3,13 @@
 
 """Tasks related to vision models."""
 
-from abc import ABC, abstractmethod
-import bisect
 import dataclasses
-import json
 import logging
-import re
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 import yaml
 
-from PIL import Image
-from torchvision.transforms import ToPILImage
 import numpy as np
 import torch
 
@@ -34,11 +27,8 @@ from megatron.energon import (
     Batch,
     CaptioningSample,
     DefaultTaskEncoder,
-    OCRSample,
     Sample,
-    SimilarityInterleavedSample,
     VQASample,
-    MultiChoiceVQASample,
     Cooker,
 )
 from megatron.energon.task_encoder.base import stateless

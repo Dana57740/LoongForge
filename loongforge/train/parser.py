@@ -5,7 +5,6 @@
 
 import argparse
 import os
-import sys
 from copy import deepcopy
 
 import torch.nn.functional as F
@@ -13,11 +12,9 @@ import functools
 
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
-from hydra.utils import instantiate
 from megatron.training.arguments import add_megatron_arguments, moe_freq_type
 from megatron.training.checkpointing import load_args_from_checkpoint
 from omegaconf import DictConfig, OmegaConf
-from dataclasses import fields
 
 from loongforge.models.utils import build_model_config
 from loongforge.train.arguments import loongforge_extra_train_args_provider
@@ -34,7 +31,6 @@ from loongforge.utils import constants
 from loongforge.utils.config_map import get_config_from_model_name
 from loongforge.utils.global_vars import (get_hydra_config,
                                                   set_args_dict,
-                                                  set_data_config,
                                                   set_hydra_config,
                                                   set_model_config)
 from loongforge.utils.utils import get_config_from_file

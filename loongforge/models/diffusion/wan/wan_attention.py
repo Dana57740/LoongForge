@@ -6,20 +6,14 @@
 import torch
 import torch.distributed as dist
 
-from copy import deepcopy
 from megatron.core.transformer.attention import (
     CrossAttention,
     SelfAttention,
-    Attention,
-    SelfAttentionSubmodules,
-    CrossAttentionSubmodules,
 )
-from megatron.core.transformer.transformer_config import TransformerConfig
-from megatron.core.transformer.spec_utils import ModuleSpec, build_module
+from megatron.core.transformer.spec_utils import build_module
 from megatron.core.transformer.enums import AttnMaskType
-from megatron.core import InferenceParams, parallel_state, tensor_parallel
+from megatron.core import tensor_parallel
 from megatron.core.packed_seq_params import PackedSeqParams
-import torch.nn as nn
 
 # Sentinel to distinguish "attribute absent" from "attribute is None".
 _MISSING = object()

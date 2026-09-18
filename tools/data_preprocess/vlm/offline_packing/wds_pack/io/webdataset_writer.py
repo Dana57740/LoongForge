@@ -9,7 +9,7 @@ import os
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Sequence
+from typing import Iterator, List, Optional, Sequence
 
 import yaml
 import webdataset as wds

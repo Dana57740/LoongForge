@@ -1,9 +1,7 @@
 """Lightning Indexer Kernels"""
 
 import torch
-import time
-from typing import Tuple, Optional
-import numpy as np
+from typing import Tuple
 import tilelang
 import tilelang.language as T
 

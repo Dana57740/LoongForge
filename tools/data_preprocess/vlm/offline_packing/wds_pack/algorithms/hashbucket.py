@@ -12,10 +12,9 @@ from pathlib import Path
 from itertools import islice
 from tqdm import tqdm
 from collections import defaultdict
-from typing import Iterable, List, Mapping, Tuple, Dict, Optional, Union, Set
+from typing import Iterable, List, Mapping, Tuple, Dict, Optional, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
-import queue
 import bisect
 
 from wds_pack.core.types import (
@@ -311,7 +310,7 @@ class HashBucketProcessor:
     def summary(self) -> None:
         """Print summary information"""
         stats = self.get_statistics()
-        print(f"=== Hash bucket processing digest  ===")
+        print("=== Hash bucket processing digest  ===")
         print(f"hash bucket count: {stats['bucket_count']}")
         print(f"total data items: {stats['total_items']}")
         print(f"Memory usage: {stats['memory_usage_gb']:.2f} GB")
@@ -516,7 +515,7 @@ class HashBucketProcessor:
                 left_keys = [k for k in self.hb2_keys if k in self.hash_buckets and len(self.hash_buckets[k])>0]
                 print(f"Remaining keys and their element counts: (keys, counts):({left_keys},{left_elems})")
                 if len(set(left_elems)) == 1:
-                    self._logger.info(f"Change packing strategy to break the cycle")
+                    self._logger.info("Change packing strategy to break the cycle")
                     b_succeed=False
                     # todo ...... Packing without considering diversity
                     current_box2 = []
@@ -524,7 +523,7 @@ class HashBucketProcessor:
                     used_keys_num = defaultdict(int)   # Record how many elements are used from this bucket
                     for key2 in left_keys:   # Take one bucket
                         if b_succeed:   # Only pack one
-                            print(f"Changed strategy packing succeeded:")
+                            print("Changed strategy packing succeeded:")
                             break
                         arr2 = self.hash_buckets[key2]
                         l_val2 = key2
@@ -552,7 +551,7 @@ class HashBucketProcessor:
                                 current_sum2 = 0
                                 used_keys_num = defaultdict(int)
                                 b_succeed = False
-                                print(f"Changed strategy packing failed!")
+                                print("Changed strategy packing failed!")
                                 break
                     pass
                 else:
@@ -895,7 +894,7 @@ class HashBucketProcessor:
         shared_manager = SharedResourceManager(self.hash_buckets, small_keys, large_keys)
         initial_stats = shared_manager.get_stats()
         
-        self._logger.info(f"Starting multithreaded packing:")
+        self._logger.info("Starting multithreaded packing:")
         self._logger.info(f"  Large seed tasks: {len(seed_tasks)}")
         self._logger.info(f"  Thread count: {max_workers}")
         self._logger.info(f"  Target capacity: {box_capacity}")
@@ -918,7 +917,7 @@ class HashBucketProcessor:
             
             # Process results
             with tqdm(total=len(seed_tasks), unit='seed', 
-                     desc=f'Multithreaded Packing', dynamic_ncols=True) as pbar:
+                     desc='Multithreaded Packing', dynamic_ncols=True) as pbar:
                 
                 for future in as_completed(future_to_task):
                     seed_key, task_id = future_to_task[future]
@@ -959,7 +958,7 @@ class HashBucketProcessor:
             avg_items_per_box = total_items / len(output_boxes)
             total_capacity_used = len(output_boxes) * box_capacity
             
-            self._logger.info(f"Multithreaded packing completed:")
+            self._logger.info("Multithreaded packing completed:")
             self._logger.info(f"  Total time: {end_time - start_time:.2f} seconds")
             self._logger.info(f"  Successful boxes: {len(output_boxes)}")
             self._logger.info(f"  Overall success rate: {final_stats['success_rate']:.2%}")
@@ -969,7 +968,7 @@ class HashBucketProcessor:
             self._logger.info(f"  Remaining small keys: {final_stats['available_small_keys']}")
             
             if failed_reasons:
-                self._logger.info(f"  Failure reason statistics:")
+                self._logger.info("  Failure reason statistics:")
                 for reason, count in failed_reasons.items():
                     self._logger.info(f"     {reason}: {count} times")
         else:
@@ -1313,7 +1312,7 @@ class HashBucketProcessor:
         # Fix: Correctly extract seed list
         selected_seeds = [seed for seed, potential in high_potential_candidates]
         
-        self._logger.info(f"Seed screening completed:")
+        self._logger.info("Seed screening completed:")
         self._logger.info(f"  Total seeds: {len(seed_candidates)}")
         self._logger.info(f"  After screening: {len(selected_seeds)}")
         self._logger.info(f"  Screening rate: {len(selected_seeds)/len(seed_candidates):.1%}")
@@ -1324,7 +1323,7 @@ class HashBucketProcessor:
         shared_manager = EnhancedSharedManager(self.hash_buckets, small_keys, large_keys)
         initial_stats = shared_manager.get_current_stats()
         
-        self._logger.info(f"Initial resource status:")
+        self._logger.info("Initial resource status:")
         self._logger.info(f"  Total small items: {initial_stats['remaining_small_items']}")
         self._logger.info(f"  Available small key types: {initial_stats['available_key_types']}")
 
@@ -1429,35 +1428,35 @@ class HashBucketProcessor:
             min_items_in_box = min(item_counts) if item_counts else 0
             max_items_in_box = max(item_counts) if item_counts else 0
             
-            self._logger.info(f"Multi-constraint packing completed!")
-            self._logger.info(f"Execution statistics:")
+            self._logger.info("Multi-constraint packing completed!")
+            self._logger.info("Execution statistics:")
             self._logger.info(f"  Total time: {end_time - start_time:.2f}s")
             self._logger.info(f"  Processed seeds: {len(selected_seeds)}")
             self._logger.info(f"  Successful bins: {len(output_boxes)}")
             self._logger.info(f"  Overall success rate: {len(output_boxes)/len(selected_seeds):.2%}")
             
-            self._logger.info(f"Packing quality:")
+            self._logger.info("Packing quality:")
             self._logger.info(f"  Average load ratio: {avg_load_ratio:.1%}")
             self._logger.info(f"  Average item count: {avg_items_per_box:.1f}")
             self._logger.info(f"  Item count range: {min_items_in_box}-{max_items_in_box}")
             self._logger.info(f"  Total packed items: {total_items_packed}")
             
-            self._logger.info(f"Remaining resources:")
+            self._logger.info("Remaining resources:")
             self._logger.info(f"  Small items: {final_stats['remaining_small_items']}")
             self._logger.info(f"  Available key types: {final_stats['available_key_types']}")
             
             if failure_analysis:
-                self._logger.info(f"Failure analysis:")
+                self._logger.info("Failure analysis:")
                 for reason, count in failure_analysis.items():
                     percentage = count / len(selected_seeds) * 100
                     self._logger.info(f"     {reason}: {count} times ({percentage:.1f}%)")
         else:
             self._logger.warning("No items successfully packed!")
             self._logger.info(f"Failure reason distribution: {dict(failure_analysis)}")
-            self._logger.info(f"Suggestions:")
+            self._logger.info("Suggestions:")
             self._logger.info(f"  1. Lower min_items (current: {min_items})")
             self._logger.info(f"  2. Lower min_ratio (current: {min_ratio})")
-            self._logger.info(f"  3. Check if data distribution is reasonable")
+            self._logger.info("  3. Check if data distribution is reasonable")
     
         return output_boxes
 
@@ -1844,7 +1843,7 @@ class HashBucketProcessor:
         # Fix: Correctly extract seed list
         selected_seeds = [seed for seed, potential in high_potential_candidates]
         
-        self._logger.info(f"Seed filtering completed:")
+        self._logger.info("Seed filtering completed:")
         self._logger.info(f"  Total seeds: {len(seed_candidates)}")
         self._logger.info(f"  After filtering: {len(selected_seeds)}")
         self._logger.info(f"  Filtering rate: {len(selected_seeds)/len(seed_candidates):.1%}")
@@ -1855,7 +1854,7 @@ class HashBucketProcessor:
         shared_manager = EnhancedSharedManager(self.hash_buckets, small_keys, large_keys)
         initial_stats = shared_manager.get_current_stats()
         
-        self._logger.info(f"Initial resource status:")
+        self._logger.info("Initial resource status:")
         self._logger.info(f"  Total small items: {initial_stats['remaining_small_items']}")
         self._logger.info(f"  Available small key types: {initial_stats['available_key_types']}")
 
@@ -1960,35 +1959,35 @@ class HashBucketProcessor:
             min_items_in_box = min(item_counts) if item_counts else 0
             max_items_in_box = max(item_counts) if item_counts else 0
             
-            self._logger.info(f"Multi-constraint packing completed!")
-            self._logger.info(f"Execution statistics:")
+            self._logger.info("Multi-constraint packing completed!")
+            self._logger.info("Execution statistics:")
             self._logger.info(f"  Total time: {end_time - start_time:.2f}s")
             self._logger.info(f"  Seeds processed: {len(selected_seeds)}")
             self._logger.info(f"  Successful bins: {len(output_boxes)}")
             self._logger.info(f"  Overall success rate: {len(output_boxes)/len(selected_seeds):.2%}")
             
-            self._logger.info(f"Packing quality:")
+            self._logger.info("Packing quality:")
             self._logger.info(f"  Average load rate: {avg_load_ratio:.1%}")
             self._logger.info(f"  Average items per bin: {avg_items_per_box:.1f}")
             self._logger.info(f"  Item count range: {min_items_in_box}-{max_items_in_box}")
             self._logger.info(f"  Total packed items: {total_items_packed}")
             
-            self._logger.info(f"Remaining resources:")
+            self._logger.info("Remaining resources:")
             self._logger.info(f"  Small items: {final_stats['remaining_small_items']}")
             self._logger.info(f"  Available key types: {final_stats['available_key_types']}")
             
             if failure_analysis:
-                self._logger.info(f"Failure analysis:")
+                self._logger.info("Failure analysis:")
                 for reason, count in failure_analysis.items():
                     percentage = count / len(selected_seeds) * 100
                     self._logger.info(f"     {reason}: {count} times ({percentage:.1f}%)")
         else:
             self._logger.warning("No items successfully packed!")
             self._logger.info(f"Failure reason distribution: {dict(failure_analysis)}")
-            self._logger.info(f"Suggestions:")
+            self._logger.info("Suggestions:")
             self._logger.info(f"  1. Lower min_items (current: {min_items})")
             self._logger.info(f"  2. Lower min_ratio (current: {min_ratio})")
-            self._logger.info(f"  3. Check if data distribution is reasonable")
+            self._logger.info("  3. Check if data distribution is reasonable")
 
 
         
@@ -2205,10 +2204,10 @@ class HashBucketProcessor:
             else:
                 key_distribution['small'] += len(self.hash_buckets[key])
         
-        print(f"Current hash buckets state:")
+        print("Current hash buckets state:")
         print(f"  Total items: {total_items}")
         print(f"  Total keys: {total_keys}")
-        print(f"  Distribution:")
+        print("  Distribution:")
         for size, count in key_distribution.items():
             print(f"    {size}: {count} items")
         
@@ -2262,7 +2261,7 @@ class PackingTracker:
                 rate = op['boxes_count'] / op['total_attempts']
                 print(f"Success rate: {rate:.1%} ({op['boxes_count']}/{op['total_attempts']})")
             else:
-                print(f"Success rate: N/A")
+                print("Success rate: N/A")
 
 
 def analyze_packing_history(tracker):

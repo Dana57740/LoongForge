@@ -4,7 +4,7 @@
 """Kernels for Deepseek Sparse Attention."""
 
 import dataclasses
-from typing import Optional, Tuple, Any
+from typing import Optional
 from packaging.version import Version as PkgVersion
 
 import torch
@@ -34,7 +34,6 @@ from megatron.core.packed_seq_params import PackedSeqParams
 from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.utils import get_te_version, is_te_min_version
 from megatron.core.fusions.fused_mla_yarn_rope_apply import _get_thd_token_idx
-from megatron.core.fusions.fused_mla_yarn_rope_apply import ApplyMLARotaryEmbQ as ApplyMLARotaryEmbQNonInterleaved
 
 try:
     import transformer_engine.pytorch as te

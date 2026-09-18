@@ -17,13 +17,7 @@ from megatron.core.transformer.transformer_layer import (
 )
 from megatron.core.transformer.attention import SelfAttention, SelfAttentionSubmodules
 from megatron.core.transformer.mlp import MLP, MLPSubmodules
-from megatron.core.extensions.transformer_engine import (
-    TELayerNormColumnParallelLinear,
-    TEDotProductAttention,
-    TERowParallelLinear,
-)
 from megatron.core.transformer.transformer_config import TransformerConfig
-from megatron.core.transformer.attention import SelfAttention
 from loongforge.models.dispatch import multiacc_modules
 
 

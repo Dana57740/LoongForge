@@ -32,7 +32,10 @@ accelerate launch wan_preprocess.py \
 
 """
 
-import os, json, argparse, shutil
+import os
+import json
+import argparse
+import shutil
 import numpy as np
 import pandas
 import imageio
@@ -42,9 +45,7 @@ from PIL import Image
 from tqdm import tqdm
 from accelerate import Accelerator
 
-from diffsynth import load_state_dict
 from diffsynth.pipelines.wan_video_new import WanVideoPipeline, ModelConfig
-from diffsynth.prompters.wan_prompter import WanPrompter
 
 
 def preprocess_image(image: Image.Image, device, torch_dtype) -> torch.Tensor:

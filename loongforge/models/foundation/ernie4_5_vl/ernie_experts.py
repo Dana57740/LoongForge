@@ -34,7 +34,6 @@ from megatron.core.utils import (
 from megatron.core import tensor_parallel
 from megatron.core.transformer.mlp import MLP, apply_swiglu_sharded_factory
 from megatron.core.transformer.moe.experts import SequentialMLP as MegaSequentialMLP
-from megatron.core.transformer.moe.shared_experts import SharedExpertMLP as MegaSharedExpertMLP
 from megatron.core.process_groups_config import ProcessGroupCollection
 
 try:

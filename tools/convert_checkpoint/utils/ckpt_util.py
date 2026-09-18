@@ -4,14 +4,12 @@
 """Utility helpers for loading, saving, and inspecting checkpoint artifacts."""
 
 import os
-import sys
 import torch
 import json
 import re
-from os.path import dirname
 from safetensors.torch import load_file, save_file
 from huggingface_hub import split_torch_state_dict_into_shards
-from transformers.modeling_utils import SAFE_WEIGHTS_INDEX_NAME, SAFE_WEIGHTS_NAME
+from transformers.modeling_utils import SAFE_WEIGHTS_INDEX_NAME
 from typing import List, Dict, Tuple
 
 

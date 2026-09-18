@@ -5,65 +5,37 @@
 
 """LLavA-OneVision TaskEncoder class."""
 
-import math
 import re
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Union, Optional, Any, Callable, TypeVar
+from typing import List, Tuple, Union, Optional, Callable, TypeVar
 
 import numpy as np
 import torch
-from megatron.energon import CaptioningSample, VQASample
-from importlib.metadata import version
-if version('megatron-energon') < "7.0.0":
-    from megatron.energon.flavors.webdataset import VideoData as AVData
-else:
-    from megatron.energon.flavors.webdataset import AVData
+from megatron.energon import VQASample
 
-from megatron.energon.task_encoder.base import stateless
-from PIL import Image
-from qwen_vl_utils.vision_process import smart_nframes, smart_resize
-from torchvision import transforms
-from torchvision.transforms import InterpolationMode
 from transformers import AutoProcessor
 from typing_extensions import override
 
-from loongforge.data.multimodal import MultiMixQASample
 from loongforge.data.multimodal.length_sort_dataset import LengthPoolSortDataset
 from loongforge.utils import constants, get_chat_template
 
 from .base.task_encoder import (
-    BaseTaskBatchPacked,
     BaseTaskSample,
-    BaseTaskSamplePacked,
-    BaseTaskEncoder,
 )
 from .vlm_task_encoder import (
     VLMTaskEncoder,
     VLMTaskSample,
-    VLMTaskSamplePacked,
-    VLMTaskBatchPacked,
 )
 from megatron.energon.flavors.base_dataset import (
     BaseCoreDatasetFactory,
-    PinMemoryMixin,
-    Sample,
     SavableDataset,
 )
-from megatron.energon.flavors.crude import CrudeSample, CrudeWebdataset
+from megatron.energon.flavors.crude import CrudeWebdataset
 from megatron.energon.metadataset.loader_interface import DatasetBlendMode
-from megatron.energon.rng import SystemRng
-from megatron.energon.task_encoder.cooking import Cooker
 from megatron.energon.worker import WorkerConfig
 from megatron.energon.wrappers import (
     BlendDataset,
-    ConcatDataset,
-    BatchDataset,
     EpochizeDataset,
-    GroupBatchDataset,
-    LimitDataset,
     LogSampleDataset,
-    MapDataset,
-    PackingDataset,
     ShuffleBufferDataset,
 )
 

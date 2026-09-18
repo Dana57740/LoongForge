@@ -359,7 +359,7 @@ def print_hf_summary(hf_sd: dict, args) -> None:
     """
     W = 80
     print("\n" + "=" * W)
-    print(f"  HuggingFace checkpoint summary")
+    print("  HuggingFace checkpoint summary")
     print(f"  ViT layers      : {args.num_vit_layers}")
     print(f"  LM layers       : {args.num_lm_layers}  (layer 0: dense MLP, layers 1-{args.num_lm_layers-1}: MoE)")
     print(f"  Experts per MoE : {args.num_experts} text + {args.num_experts} vision = {2*args.num_experts} total")
@@ -397,7 +397,7 @@ def print_hf_summary(hf_sd: dict, args) -> None:
                 print(f"    {suffix:<40s} {_shape(hf_sd[k])}")
 
     # ---- LM layer 0: dense MLP ----
-    print(f"\n[LM layer 0]  (dense MLP)")
+    print("\n[LM layer 0]  (dense MLP)")
     for suffix in [
         "input_layernorm.weight",
         "self_attn.q_proj.weight", "self_attn.k_proj.weight", "self_attn.v_proj.weight",
@@ -472,7 +472,7 @@ def print_mcore_summary(mcore: list, args) -> None:
     sd = mcore[0][0]["model"]
 
     print("\n" + "=" * W)
-    print(f"  MCore checkpoint summary  (shard pp=0 tp=0)")
+    print("  MCore checkpoint summary  (shard pp=0 tp=0)")
     print(f"  Total MCore keys : {sum(1 for k in sd if not k.endswith('extra_state'))}")
     print("=" * W)
 
@@ -512,7 +512,7 @@ def print_mcore_summary(mcore: list, args) -> None:
             show(f"{mc}.{suffix}")
 
     # ---- LM layer 0: dense ----
-    print(f"\n[LM layer 0]  (dense MLP)")
+    print("\n[LM layer 0]  (dense MLP)")
     mc0 = "foundation_model.decoder.layers.0"
     for suffix in [
         "input_layernorm.weight",

@@ -3,12 +3,11 @@
 
 """Script for preparing raw samples using packed bins."""
 
-import bisect
 import os
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Union
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from wds_pack.core.config import get_cfg, parse_args
@@ -96,14 +95,14 @@ def extract_assistant_response(json_path):
                     if msg["role"] == "assistant"
                 )
                 return assistant_content
-            except Exception as e:
+            except Exception:
                 pass
             try:
                 assistant_content = next(
                     msg["value"] for msg in data["texts"] if msg["from"] == "gpt"
                 )
                 return assistant_content
-            except Exception as e:
+            except Exception:
                 pass
 
         elif task_type == "pretrain" and isinstance(data, dict):
@@ -140,7 +139,7 @@ def extract_user_prompt(json_path):
                     msg["content"] for msg in data["messages"] if msg["role"] == "user"
                 )
                 return user_content
-            except Exception as e:
+            except Exception:
                 pass
 
             try:
@@ -148,7 +147,7 @@ def extract_user_prompt(json_path):
                     msg["value"] for msg in data["texts"] if msg["from"] == "human"
                 )
                 return user_content
-            except Exception as e:
+            except Exception:
                 pass
 
     except FileNotFoundError:

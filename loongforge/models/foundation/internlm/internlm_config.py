@@ -6,7 +6,6 @@
 from dataclasses import dataclass
 
 from loongforge.utils.constants import LanguageModelFamilies
-from loongforge.models.factory import register_model_config
 from loongforge.models.common.base_model_config import BaseModelConfig
 
 

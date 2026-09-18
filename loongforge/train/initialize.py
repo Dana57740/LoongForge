@@ -8,17 +8,11 @@
 
 import os
 import logging
-import argparse
 
 import torch
 
 from megatron.core import mpu, tensor_parallel
 
-from megatron.training.arguments import (
-    parse_args,
-    validate_args as validate_megatron_args,
-    add_megatron_arguments,
-)
 
 from megatron.training.async_utils import init_persistent_async_worker
 from megatron.training.global_vars import (
@@ -38,7 +32,7 @@ from megatron.training.initialize import (
     _compile_dependencies,
     _initialize_tp_communicators,
 )
-from megatron.core.parallel_state import initialize_model_parallel, is_initialized
+from megatron.core.parallel_state import initialize_model_parallel
 
 from loongforge.utils.global_vars import set_loongforge_extra_global_vars
 from loongforge.utils import get_model_config

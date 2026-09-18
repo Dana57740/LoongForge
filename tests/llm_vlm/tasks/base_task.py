@@ -3,21 +3,19 @@
 
 """base_task.py"""
 
-import os, time
+import os
+import time
 from typing import Any, Dict, List
 import shutil
-import os, time
 from copy import deepcopy
-import json, re, yaml
-import subprocess
-import sys
-import random
+import json
+import re
+import yaml
 import torch
 import numpy as np
-from typing import Dict, List, Any
 from tools.color_logger import create_color_logger
 from tools.config_manager import ConfigManager
-from utils.constants import task_created_flag, task_running_flag, task_finish_flag
+from utils.constants import task_finish_flag
 from metric.metric import Metric
 
 logger = create_color_logger(name=__name__)
@@ -232,11 +230,11 @@ class BaseTask(object):
 
         # Open or create lock file
         with open(lock_file, 'a+') as file:
-            logger.info(f"initialize_lock_file start ...")
+            logger.info("initialize_lock_file start ...")
             file.seek(0) # Reset file pointer to beginning
             file.truncate() # Clear file content
             file.write(task_flag)
-            logger.info(f"initialize_lock_file end")
+            logger.info("initialize_lock_file end")
     
     def wait_async_pod_complete(self, lock_file, model_name="", scenarios_name="", is_function=False, function=None, raise_on_error=False, *args, **kwargs):
         logger.info(f"Model [{model_name}] {scenarios_name} waiting for other Pods to complete...")
@@ -447,7 +445,7 @@ class BaseTask(object):
 
     
     def assert_loongforge(self, training_log_file, training_type=None, **kwargs):
-        logger.info(f"Start assert_loongforge ...")
+        logger.info("Start assert_loongforge ...")
 
         if not self.is_final_pod:
             return
@@ -473,7 +471,7 @@ class BaseTask(object):
             self.save_baseline_from_log(training_log_file, training_type)
         # Unified validation of accuracy and performance metrics
         self.validate_metrics(self.model_name, training_type)
-        logger.info(f"End assert_loongforge")
+        logger.info("End assert_loongforge")
 
     def validate_metrics(self, model_name, training_type=None):
         """
@@ -952,7 +950,7 @@ class BaseTask(object):
             dst_load_path: Converted hf checkpoint path
             model_name: Model name, used to get layer mapping configuration
         """
-        logger.info(f"Start checking HF checkpoint consistency...")
+        logger.info("Start checking HF checkpoint consistency...")
         logger.info(f"Source path: {src_load_path}")
         logger.info(f"Converted path: {dst_load_path}")
         
@@ -971,7 +969,7 @@ class BaseTask(object):
         for layer_id in range(vit_num_layers):
             self._check_hf_layer(src_load_path, dst_load_path, vit_prefix, layer_id, "vit")
         
-        logger.info(f"HF checkpoint consistency check passed!")
+        logger.info("HF checkpoint consistency check passed!")
 
     def create_shell_file(self, model_config, script_path, new_script_path):
         import re
@@ -1074,7 +1072,7 @@ class BaseTask(object):
         hf_check_model_name = model_config.get("HF_CHECK_MODEL_NAME", "")
         if hf_ckpt_path and reverse_hf_ckpt_path and hf_check_model_name:
             if self.is_final_pod:
-                logger.info(f"Start executing HF checkpoint consistency check...")
+                logger.info("Start executing HF checkpoint consistency check...")
                 self.check_hf_checkpoint(hf_ckpt_path, reverse_hf_ckpt_path, hf_check_model_name)
         else:
             logger.warning(f"Missing HF check config, skipping consistency check: HF_CKPT_PATH={hf_ckpt_path}, REVERSE_HF_CKPT_PATH={reverse_hf_ckpt_path}, HF_CHECK_MODEL_NAME={hf_check_model_name}")
@@ -1147,4 +1145,4 @@ class BaseTask(object):
         logger.info(f"{step_stage} End {step_name}")
 
     def __call__(self) -> TaskResut:
-        raise NotImplementedError(f"must overide this method.")
+        raise NotImplementedError("must overide this method.")

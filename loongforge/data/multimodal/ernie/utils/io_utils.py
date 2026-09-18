@@ -22,7 +22,6 @@ import threading
 import uuid
 from pathlib import Path
 
-import numpy as np
 import requests
 from PIL import Image
 from PIL.ExifTags import TAGS

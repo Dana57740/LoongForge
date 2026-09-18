@@ -3,7 +3,6 @@
 
 """ Mcore_checkpoint converter for megatron lm. """
 
-import io
 import torch
 import logging
 

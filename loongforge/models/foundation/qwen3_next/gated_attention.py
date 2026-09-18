@@ -7,7 +7,6 @@
 """GatedSoftmaxAttention"""
 
 import torch
-from torch import Tensor
 
 from typing import Optional, Tuple, Union
 
@@ -46,7 +45,7 @@ try:
     )
 
     HAVE_FA3 = True
-except:
+except Exception:
     HAVE_FA3 = False
 
 

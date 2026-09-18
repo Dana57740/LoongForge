@@ -3,7 +3,6 @@
 
 """default pretrain for generative models like GPTS"""
 
-import os
 
 from megatron.core.enums import ModelType
 from megatron.core.utils import StragglerDetector
@@ -22,7 +21,7 @@ from loongforge.models.omni_models.omni_model_provider import (
 from loongforge.train.megatron_trainer import MegatronTrainer
 from loongforge.train.trainer_builder import register_model_trainer
 
-from loongforge.utils import constants, get_args, get_model_config
+from loongforge.utils import get_args, get_model_config
 
 stimer = StragglerDetector()
 

@@ -11,7 +11,7 @@ from typing import Optional
 
 from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.transformer.spec_utils import ModuleSpec
-from megatron.core.transformer.mlp import MLP, MLPSubmodules
+from megatron.core.transformer.mlp import MLPSubmodules
 from megatron.core.transformer.moe.moe_layer import MoELayer, MoESubmodules
 from megatron.core.transformer.transformer_layer import get_transformer_layer_offset
 from megatron.core.models.backends import BackendSpecProvider, LocalSpecProvider
@@ -27,7 +27,7 @@ from megatron.core.models.gpt.gpt_layer_specs import (
     get_gpt_mtp_block_spec,
 )
 
-from .gated_deltanet import GatedDeltaNet, GatedDeltaNetSubmodules, Qwen3NextRMSNorm
+from .gated_deltanet import GatedDeltaNet, Qwen3NextRMSNorm
 from .gated_attention import Qwen3NextSelfAttention
 HAVE_TE = True
 

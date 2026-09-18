@@ -16,7 +16,6 @@ import logging
 from typing import Dict, List, Optional, Tuple, Literal
 
 import torch
-import torch.nn as nn
 from collections import namedtuple
 from functools import partial
 from ..common import BaseMegatronModule, BaseModelConfig

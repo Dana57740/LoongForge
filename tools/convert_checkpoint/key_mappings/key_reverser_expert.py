@@ -8,15 +8,10 @@ import sys
 import argparse
 from os.path import dirname
 import torch
-import shutil
 
 SCRIPT_DIR = dirname(os.path.abspath(__file__))
 sys.path.append(dirname(dirname(SCRIPT_DIR)))
 
-from convert_checkpoint.utils.ckpt_util import (
-    load_megatron_checkpoint,
-    save_megatron_checkpoint,
-)
 
 
 from convert_checkpoint.key_mappings.to_vanilla_key import (

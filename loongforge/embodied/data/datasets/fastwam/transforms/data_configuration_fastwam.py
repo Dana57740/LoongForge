@@ -28,10 +28,7 @@ the ``model_cfg`` instance passed alongside this ``DataConfig``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from loongforge.embodied.model.fastwam.modeling_configuration_fastwam import FastWAMModelConfig
+from typing import Any
 
 
 @dataclass(frozen=True)

@@ -6,13 +6,12 @@
 
 """default pretrain for generative models like GPTS"""
 
-import os
 import torch
 
 from functools import partial
 
 from megatron.training import get_timers
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from megatron.core import mpu
 from megatron.core.enums import ModelType
 from megatron.core.utils import StragglerDetector
@@ -31,7 +30,6 @@ from megatron.core.rerun_state_machine import get_rerun_state_machine
 from megatron.training.utils import (
     get_batch_on_this_cp_rank,
     get_batch_on_this_tp_rank,
-    get_blend_and_blend_per_split,
     is_first_or_last_pipeline_stage,
     get_next_batch_on_this_tp_rank,
 )
@@ -41,7 +39,6 @@ from megatron.core.transformer.multi_token_prediction import mtp_on_this_rank, g
 
 from loongforge.utils import constants, get_args, get_tokenizer, print_rank_0
 
-from loongforge.models import get_model_provider, get_model_family
 
 from loongforge.train.megatron_trainer import MegatronTrainer
 from loongforge.train.trainer_builder import register_model_trainer

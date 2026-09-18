@@ -3,7 +3,6 @@
 
 """reconstruct funcs"""
 
-import torch
 from megatron.training import get_args
 
 

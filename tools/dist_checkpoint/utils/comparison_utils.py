@@ -8,7 +8,7 @@ Provides tools for comparing two HF checkpoints and generating detailed reports.
 import os
 import json
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict
 from dataclasses import dataclass, asdict
 
 import torch
@@ -263,7 +263,7 @@ def print_comparison_summary(metrics: ComparisonMetrics) -> None:
             print(f"  ... and {len(metrics.shape_mismatches) - 5} more")
 
     if metrics.largest_diffs:
-        print(f"\nLargest value differences:")
+        print("\nLargest value differences:")
         for key, diff_info in sorted(
             metrics.largest_diffs.items(),
             key=lambda x: x[1]['max'],

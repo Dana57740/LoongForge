@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 
 from dataclasses import dataclass, field
-from typing import Optional, Union, Tuple, List, Any
+from typing import Optional, Union, Tuple, List
 
 import yaml
 import torch
@@ -471,7 +471,7 @@ class SFTDataset(HuggingFaceDataset):
             data_type != SFT_SUPPORT_DATA_TYPE.get(os.path.splitext(file)[-1][1:], None)
             for file in data_files
         ):
-            raise ValueError(f"All files must be of the same type.")
+            raise ValueError("All files must be of the same type.")
 
         log_single_rank(logger, logging.INFO, f">>> Detected data files: {data_files}")
 
@@ -551,7 +551,7 @@ class SFTDataset(HuggingFaceDataset):
         example_str = (
             f"\n----------------Example Data In {self.dataset_path}----------------\n"
         )
-        example_str += f">>> input: \n"
+        example_str += ">>> input: \n"
         example_str += f"{self.config.tokenizer.detokenize(example['input_ids'], skip_special_tokens=False)}\n"
         example_str += f">>> input_ids: \n{example['input_ids']}\n"
 

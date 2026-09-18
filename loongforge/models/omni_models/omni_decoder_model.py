@@ -11,7 +11,6 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 import torch
-import torch.nn as nn
 
 from ..common.base_model_mixins import BaseDecoderModelMixin
 

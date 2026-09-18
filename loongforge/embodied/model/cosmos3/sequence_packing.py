@@ -116,7 +116,7 @@ def create_sparse_mask(document_lens, split_lens, attn_modes, device):
 
     full_and_noise_seq_id = torch.tensor(full_and_noise_seq_ids, device=device)  # [seq_len]
     noise_seq_id = torch.tensor(noise_seq_ids, device=device)  # [seq_len]
-    document_id = torch.cat([torch.full((l,), i) for i, l in enumerate(document_lens, start=1)]).to(device)  # [seq_len]
+    document_id = torch.cat([torch.full((doc_len,), i) for i, doc_len in enumerate(document_lens, start=1)]).to(device)  # [seq_len]
 
     # Define component mask functions
     def causal_mask(b, h, q_idx, kv_idx):

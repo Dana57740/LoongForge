@@ -10,7 +10,6 @@ from torch import Tensor
 from typing import Dict
 
 from megatron.core import  mpu
-from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.models.common.embeddings.rope_utils import (
     get_pos_emb_on_this_cp_rank as mcore_get_pos_emb_on_this_cp_rank
 )

@@ -4,8 +4,6 @@
 """Adapters"""
 
 import torch
-from dataclasses import dataclass
-from typing import Union
 from megatron.core.transformer.transformer_config import TransformerConfig
 from megatron.core.transformer.spec_utils import  build_module
 from .qwen2_vl_config import MLPAdapterConfig

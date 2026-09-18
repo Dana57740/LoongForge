@@ -7,7 +7,7 @@
 
 """Cosmos3 preprocessor: collate function producing Cosmos3Batch."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import torch

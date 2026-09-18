@@ -3,8 +3,6 @@
 
 """Convert MoE checkpoint parameters between common and Megatron Core formats."""
 
-import io
-import torch
 import logging
 
 logging.basicConfig(level=logging.INFO)

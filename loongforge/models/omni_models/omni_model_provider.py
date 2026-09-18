@@ -7,13 +7,13 @@ Omni Model Provider.Provides model construction interfaces compatible with exist
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from .omni_combination_model import OmniCombinationModel
 from loongforge.utils import get_args
 from megatron.core import mpu
 import torch
-from loongforge.utils import build_transformer_config, get_model_config
+from loongforge.utils import get_model_config
 from loongforge.models.common import BaseModelConfig
 
 

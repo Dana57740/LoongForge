@@ -11,8 +11,8 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 
-from megatron.core import parallel_state, tensor_parallel
-from megatron.core.transformer.spec_utils import ModuleSpec, build_module
+from megatron.core import tensor_parallel
+from megatron.core.transformer.spec_utils import build_module
 from megatron.core.transformer.transformer_config import TransformerConfig
 from megatron.core.transformer.transformer_layer import TransformerLayer, TransformerLayerSubmodules
 from megatron.core.utils import make_viewless_tensor

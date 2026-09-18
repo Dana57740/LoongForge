@@ -5,29 +5,22 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple
 
 import torch
-import torch.nn as nn
 from torch import Tensor
 from .omni_encoder_model import OmniEncoderModel
-from .omni_decoder_model import OmniDecoderModel
 from .utils import get_inputs_on_this_cp_rank
 from transformers.models.auto.modeling_auto import AutoModel
 from loongforge.models.common import BaseMegatronModule, BaseModelConfig
-from megatron.core.transformer.enums import AttnMaskType
 from megatron.core import InferenceParams, tensor_parallel
-from megatron.core.transformer.module import MegatronModule
 from loongforge.train.initialize import (
     mpu,
-    change_parallel_state, 
     get_encoder_dp_size,
-    get_num_micro_batches_per_decoder_dp,
 )
 from megatron.core.pipeline_parallel.fine_grained_activation_offload import (
     fine_grained_offloading_init_chunk_handler,
 )
-from megatron.training import print_rank_0
 
 class OmniCombinationModel(BaseMegatronModule):
     """Omni multimodal combination model"""

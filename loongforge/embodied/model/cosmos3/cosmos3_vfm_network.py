@@ -20,9 +20,7 @@ from .sequence_packing import ModalityData, PackedSequence
 from .attention import build_packed_sequence
 from .domain_aware_linear import DomainAwareLinear
 from .modeling_utils import (
-    FlattenedSinCosPositionEmbedding,
     TimestepEmbedder,
-    VideoRopePosition3DEmb,
 )
 
 

@@ -10,14 +10,12 @@ from typing import Optional
 
 import torch
 from torch import Tensor
-from megatron.core import InferenceParams, parallel_state
-from megatron.core.models.common.embeddings.rotary_pos_embedding import RotaryEmbedding
+from megatron.core import InferenceParams
 from megatron.core.packed_seq_params import PackedSeqParams
 from megatron.core.process_groups_config import ProcessGroupCollection
 
 from loongforge.models.foundation.base import BaseGPTModel
 from loongforge.models.utils import import_module
-from loongforge.models.omni_models.utils import get_pos_emb_on_this_cp_rank
 from loongforge.models.foundation.qwen2.qwen_model import (
     Qwen2VLRotaryEmbedding,
     DynamicRotaryEmbedding,

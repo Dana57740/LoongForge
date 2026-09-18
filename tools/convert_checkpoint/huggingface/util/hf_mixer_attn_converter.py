@@ -8,12 +8,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-from omegaconf import ListConfig
 
-from convert_checkpoint.common.common_checkpoint import (
-    WEIGHT,
-    BIAS
-)
 
 class HfMixerAttnConverter():
     def __init__(self, c_config):

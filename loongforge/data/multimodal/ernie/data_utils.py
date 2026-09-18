@@ -20,14 +20,10 @@
 utils for data processor
 """
 
-import base64
-import math
 import torch
-from io import BytesIO
 import numpy as np
 
 import xxhash
-from PIL import Image
 from transformers import AutoProcessor
 
 

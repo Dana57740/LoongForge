@@ -6,7 +6,6 @@
 from typing import Union, List, Callable
 import logging
 
-from loongforge.models import get_model_family
 from loongforge.utils.global_vars import get_hydra_config
 from loongforge.utils import constants
 

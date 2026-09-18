@@ -23,7 +23,6 @@ from megatron.core.pipeline_parallel.utils import (
     get_comm_stream,
     get_comp_stream,
 )
-from megatron.core.transformer.multi_token_prediction import get_mtp_num_layers_to_build
 
 
 class ModelChunkState:

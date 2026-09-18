@@ -21,7 +21,6 @@ import torch
 from functools import partial
 from megatron.core import mpu
 import torch.distributed as dist
-from typing import List
 
 from megatron.training import get_args
 from loongforge.utils import constants

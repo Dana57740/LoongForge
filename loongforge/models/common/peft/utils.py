@@ -110,7 +110,7 @@ def apply_peft_transformation(peft, base_model: list[MegatronModule]) -> list[Me
         if param.requires_grad:
             trainable_params += param_count
 
-    print_rank_0(f"PEFT Statistics:")
+    print_rank_0("PEFT Statistics:")
     print_rank_0(f"  Total parameters: {total_params:,}")
     print_rank_0(f"  Trainable parameters: {trainable_params:,}")
     print_rank_0(f"  Trainable percentage: {100 * trainable_params / total_params:.2f}%")
@@ -540,7 +540,7 @@ def is_expert_linear(fqn: str) -> bool:
         >>> is_expert_linear("model.layers.0.mlp.linear_fc1")
         False
     """
-    return re.match(r".*mlp\..*experts.*\.linear_fc[1-2]$", fqn) is not None and not ".shared_experts." in fqn
+    return re.match(r".*mlp\..*experts.*\.linear_fc[1-2]$", fqn) is not None and ".shared_experts." not in fqn
 
 
 def wildcard_match(pattern: str, key: Optional[str]) -> Optional[bool]:

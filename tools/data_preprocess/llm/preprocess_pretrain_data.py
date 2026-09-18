@@ -15,8 +15,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),
 import time
 import gzip
 import glob
-import torch
-import numpy as np
 import multiprocessing
 try:
     import nltk
@@ -351,7 +349,8 @@ def main():
                 partitioned_input_files.append(partitioned_input_file)
 
             index = 0
-            if args.keep_sequential_samples: line_count = 0
+            if args.keep_sequential_samples:
+                line_count = 0
             for in_file_name in in_file_names:
                 # support for gzip files
                 if in_file_name.endswith(".gz"):

@@ -4,8 +4,8 @@
 """Lora model config"""
 
 from ..base_model_config import BasePeftModelConfig
-from dataclasses import dataclass, field, fields
-from typing import List, Literal, Optional
+from dataclasses import dataclass, field
+from typing import List, Literal
 import torch
 
 @dataclass

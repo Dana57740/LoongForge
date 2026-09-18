@@ -6,7 +6,6 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 
 """Module for custom_lr_scheduler."""
-from typing import Optional
 
 import numpy as np
 import logging

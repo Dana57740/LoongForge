@@ -9,7 +9,6 @@ from typing import Optional, Union
 import torch
 import torch.nn as nn
 
-from megatron.core import parallel_state
 from megatron.core.utils import make_viewless_tensor
 from megatron.core.dist_checkpointing.mapping import ShardedStateDict
 from megatron.core.dist_checkpointing.utils import apply_prefix_mapping
@@ -25,11 +24,9 @@ from megatron.core.parallel_state import (
     get_context_parallel_group,
     get_hierarchical_context_parallel_groups,
 )
-from megatron.core.process_groups_config import ProcessGroupCollection
 
 from loongforge.models.common import BaseModelStditConfig
 
-import math
 
 import transformer_engine.pytorch as te
 

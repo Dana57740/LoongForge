@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 import torch
 import torch.distributed as dist
-from megatron.core import mpu, parallel_state
 from megatron.training import print_rank_0
 from megatron.training.utils import unwrap_model
 
@@ -22,7 +21,7 @@ from megatron.training.utils import unwrap_model
 from tools.dist_checkpoint.core.parser import Parser
 from tools.dist_checkpoint.core.topo_sharder import TopoSharder
 from tools.dist_checkpoint.checkpoint.hf_checkpoint_converter import HfCheckpointConverter
-from tools.dist_checkpoint.utils import time_checkpoint_operation, MemoryTracker
+from tools.dist_checkpoint.utils import time_checkpoint_operation
 from tools.convert_checkpoint.utils.utils import get_etp_map
 from tools.convert_checkpoint.utils.config_utils import get_yaml_config
 

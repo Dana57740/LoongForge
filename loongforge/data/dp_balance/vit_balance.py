@@ -69,7 +69,7 @@ def dp_balance_vit_encoder(vit_module, pixel_values, image_grid_thw):
         global_vit_lengths,
         local_vit_index,
         tensor_src_dp_rank,
-        cost_fn=lambda l: l ** 2,
+        cost_fn=lambda length: length ** 2,
         pack_len_ratio=get_args().dp_balance_max_len_ratio_vit,
         cross_micro_batch_balance=False,
         caller="ViT",

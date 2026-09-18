@@ -18,13 +18,14 @@ import numpy as np
 import torch
 from PIL import Image
 from torchvision.transforms import InterpolationMode
-import torchvision
 import torchvision.transforms as T
 import torch.nn.functional as F
 import transformers
-import av
 import sys
 import cv2
+import io
+import logging
+import random
 
 IGNORE_TOKEN_ID = -100
 IGNORE_INDEX = -100
@@ -40,6 +41,38 @@ from .internvl_constants import (
     SIGLIP_MEAN,
     SIGLIP_STD,
 )
+
+logger = logging.getLogger(__name__)
+
+
+def expand2square(pil_img, background_color):
+    width, height = pil_img.size
+    if width == height:
+        return pil_img
+    elif width > height:
+        result = Image.new(pil_img.mode, (width, width), background_color)
+        result.paste(pil_img, (0, (width - height) // 2))
+        return result
+    else:
+        result = Image.new(pil_img.mode, (height, height), background_color)
+        result.paste(pil_img, ((height - width) // 2, 0))
+        return result
+
+
+def simulate_jpeg_degradation(quality):
+    def jpeg_degrade(img):
+        with io.BytesIO() as output:
+            img.convert("RGB").save(output, format="JPEG", quality=quality)
+            output.seek(0)  # Move the reading cursor to the start of the stream
+            img_jpeg = Image.open(output).copy()  # Use .copy() to make sure the image is loaded in memory
+        return img_jpeg
+
+    return jpeg_degrade
+
+
+# Define the JPEG compression quality range, pre-create all JPEG compression functions
+qualities = list(range(75, 101))
+jpeg_degrade_functions = {quality: simulate_jpeg_degradation(quality) for quality in qualities}
 
 
 @dataclasses.dataclass
@@ -910,7 +943,7 @@ class InternvlPreprocess:
             if sample == "rand":
                 try:
                     frame_indices = [random.choice(range(x[0], x[1])) for x in ranges]
-                except:
+                except Exception:
                     frame_indices = np.random.permutation(vlen)[:acc_samples]
                     frame_indices.sort()
                     frame_indices = list(frame_indices)

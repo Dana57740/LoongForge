@@ -43,6 +43,10 @@ from .qwen3_vl import (
 
 logger = logging.getLogger(__name__)
 
+# (gen_k, gen_v, und_k, und_v) returned by each compiled layer for the caller
+# to write back into the cache outside the torch.compile boundary.
+KVToStore = tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+
 
 @dataclass
 class _LBLMetadata:

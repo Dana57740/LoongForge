@@ -24,7 +24,6 @@ from megatron.core.tensor_parallel.mappings import (
     gather_from_sequence_parallel_region,
     gather_from_tensor_model_parallel_region,
     reduce_from_tensor_model_parallel_region,
-    scatter_to_sequence_parallel_region,
 )
 
 from megatron.core.transformer.enums import AttnMaskType
@@ -42,7 +41,6 @@ from megatron.core.transformer.experimental_attention_variant.dsa_kernels import
     build_flat_topk_idxs,
     dsa_sparse_attn,
     fused_indexer_sparse_attn,
-    indexer_topk,
 )
 
 from megatron.core.transformer.module import MegatronModule

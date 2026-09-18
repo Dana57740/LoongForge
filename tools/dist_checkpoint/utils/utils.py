@@ -10,7 +10,7 @@ Provides:
 
 import time
 import functools
-from typing import Callable, Any, Dict, Optional, TypeVar, Tuple, List
+from typing import Callable, Any, Dict, TypeVar, List
 from contextlib import contextmanager
 import torch
 import torch.distributed as dist

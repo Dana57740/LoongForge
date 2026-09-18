@@ -7,7 +7,6 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-from convert_checkpoint.arguments import parse_args
 from convert_checkpoint.common.common_checkpoint import LAYER_IS_DICT_FOR_EXPERT, CommonCheckpoint
 
 from convert_checkpoint.huggingface.huggingface_base import HuggingfaceBase
@@ -16,7 +15,6 @@ from convert_checkpoint.common.common_checkpoint import (
     WEIGHT,
     BIAS,
     MOE_EXPERT_H_TO_4H,
-    LAYER_IS_DICT_FOR_EXPERT,
 )
 
 

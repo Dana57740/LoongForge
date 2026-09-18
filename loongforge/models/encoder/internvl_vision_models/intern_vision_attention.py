@@ -10,7 +10,7 @@ import torch
 
 from megatron.core.utils import divide
 from megatron.core.transformer.enums import AttnMaskType
-from megatron.core.transformer.spec_utils import ModuleSpec, build_module
+from megatron.core.transformer.spec_utils import build_module
 from megatron.core.transformer.transformer_config import TransformerConfig
 from megatron.core.transformer.attention import Attention, SelfAttentionSubmodules
 from megatron.core.transformer.module import MegatronModule

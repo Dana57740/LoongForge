@@ -24,7 +24,6 @@ from convert_checkpoint.huggingface.huggingface_config import HuggingFaceConfig
 from convert_checkpoint.mcore.mcore_checkpoint import McoreCheckpoint
 from convert_checkpoint.mcore.mcore_config import McoreConfig
 from convert_checkpoint.common.common_config import CommonConfig
-from convert_checkpoint.common.common_checkpoint import CommonCheckpoint
 from convert_checkpoint.arguments import parse_args, set_args
 from convert_checkpoint.utils import utils
 
@@ -37,7 +36,7 @@ from convert_checkpoint.utils.utils import(
     convert_layout_to_custom_pipeline_layers
 )
 
-from convert_checkpoint.utils.config_utils import get_yaml_config, replace_vlm_config
+from convert_checkpoint.utils.config_utils import get_yaml_config
 
 
 BIG_MODEL_LIST = ['llama2-70b', 'qwen-72b', 'codellama-70b', 'codellama-34b']
@@ -297,7 +296,7 @@ def _convert_checkpoint(args):
     world_size = int(os.getenv("WORLD_SIZE", '1'))
     if utils.LOADED_STATE_DICT is None:
         if etp is not None:
-            assert (ep * pp // world_size) % (tp // etp) == 0, f"(ep * pp // world_size) % (tp // etp) must be 0"
+            assert (ep * pp // world_size) % (tp // etp) == 0, "(ep * pp // world_size) % (tp // etp) must be 0"
         p_dict = get_pipeline_by_rank_id(rank_id, world_size, pp, ep=ep)
     else:
         p_dict = {}

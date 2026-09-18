@@ -10,7 +10,6 @@ import torch
 import shutil
 from os.path import dirname
 
-from os.path import dirname
 SCRIPT_DIR = dirname(os.path.abspath(__file__))
 sys.path.append(dirname(dirname(SCRIPT_DIR)))
 
@@ -153,7 +152,7 @@ for sub_dir in sub_dirs:
     try:
         torch.save(ckpt, checkpoint_path)
         print(f"Successfully Update Megatron shard: {checkpoint_path}")
-    except Exception as e:
+    except Exception:
         print(f"Failed to update Megatron shard: {checkpoint_path}")
 
 if os.path.exists(args.save_ckpt_path):

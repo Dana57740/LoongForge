@@ -6,7 +6,6 @@
 
 """default sft trainer for generative models like GPTS"""
 
-import os
 import torch
 
 from functools import partial
@@ -22,7 +21,6 @@ from megatron.core.rerun_state_machine import get_rerun_state_machine
 from megatron.core.num_microbatches_calculator import get_num_microbatches
 
 from megatron.training import get_timers
-from megatron.training.utils import average_losses_across_data_parallel_group
 
 from loongforge.utils import (
     constants,
@@ -32,7 +30,6 @@ from loongforge.utils import (
     print_rank_0,
 )
 
-from loongforge.models import get_model_provider, get_model_family
 from loongforge.data import (
     SFTDataset,
     SFTDatasetConfig,
@@ -40,7 +37,7 @@ from loongforge.data import (
     DataCollatorForSupervisedDataset,
 )
 
-from loongforge.utils import constants, get_args, get_model_config
+from loongforge.utils import get_model_config
 
 from loongforge.train.megatron_trainer import MegatronTrainer
 from loongforge.train.trainer_builder import register_model_trainer

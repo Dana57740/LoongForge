@@ -2,7 +2,6 @@
 
 from typing import Any, Dict
 
-import math
 import torch
 import torchvision.transforms.functional as TF
 

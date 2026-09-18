@@ -15,7 +15,7 @@ import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional
 
 from .results import PathLike, load_jsonl, summarize_records, summarize_suites, validate_episode_floor
 

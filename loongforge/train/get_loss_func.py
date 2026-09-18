@@ -10,7 +10,6 @@ import torch
 import os
 from megatron.core import mpu
 import torch.distributed as dist
-from megatron.training.utils import average_losses_across_data_parallel_group
 
 
 def default_loss_func(

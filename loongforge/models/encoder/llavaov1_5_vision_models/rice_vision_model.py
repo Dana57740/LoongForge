@@ -6,10 +6,8 @@
 """VisionTransformer module"""
 
 import torch
-import torch.nn.functional as F
 from typing import Optional
 from megatron.core.packed_seq_params import PackedSeqParams
-from megatron.core.transformer.enums import AttnMaskType
 from .llavaov_1_5_config import RiceVisionConfig
 from loongforge.models.encoder.base_vision_models.base_vision_model import (
     BaseVisionModel,

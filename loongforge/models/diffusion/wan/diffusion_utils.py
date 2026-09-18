@@ -15,7 +15,6 @@ IDDPM: https://github.com/openai/improved-diffusion/blob/main/improved_diffusion
 
 import numpy as np
 import torch
-from megatron.core import mpu
 
 
 def normal_kl(mean1, logvar1, mean2, logvar2):

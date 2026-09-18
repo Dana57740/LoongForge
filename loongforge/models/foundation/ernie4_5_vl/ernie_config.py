@@ -3,7 +3,6 @@
 
 """Ernie-VL configuration"""
 
-import torch
 import math
 from dataclasses import dataclass
 from loongforge.models.common.base_model_config import BaseModelConfig

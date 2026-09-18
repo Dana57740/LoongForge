@@ -28,14 +28,11 @@ from typing import (
     List,
     Optional,
     Sequence,
-    Tuple,
     TypedDict,
     Union,
-    Type,
 )
 
 import numpy as np
-from transformers.image_utils import get_image_size, to_numpy_array
 from typing_extensions import override
 
 from loongforge.utils.constants import Placeholder
@@ -49,6 +46,8 @@ from PIL.Image import Image as ImageObject
 if TYPE_CHECKING:
     import torch
     from transformers.image_processing_utils import BaseImageProcessor
+    from transformers.image_utils import Stream
+    from transformers.processing_utils import ProcessorMixin
 
     class EncodedImage(TypedDict):
         """Encoded image type."""

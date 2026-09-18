@@ -11,7 +11,6 @@ from typing import Optional
 from contextlib import nullcontext
 from transformers import AutoModel
 
-from megatron.core.transformer.spec_utils import import_module
 from loongforge.utils import (
     get_args, get_model_config, print_rank_0
 )
@@ -70,7 +69,7 @@ def llm_model_provider(
             # Check if fp8_model_init supports preserve_high_precision_init_val
             if "preserve_high_precision_init_val" in inspect.signature(fp8_model_init).parameters:
                 build_model_context_args["preserve_high_precision_init_val"] = True
-        except:
+        except Exception:
             raise RuntimeError(
                 "--fp8-param-gather requires `fp8_model_init` from TransformerEngine,but not found.")
 

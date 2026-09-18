@@ -1,6 +1,7 @@
 # Copyright 2026 The LoongForge Authors.
 # SPDX-License-Identifier: Apache-2.0
-import os, sys
+import os
+import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
 

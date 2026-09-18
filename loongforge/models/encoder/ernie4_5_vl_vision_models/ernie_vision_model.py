@@ -23,15 +23,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-import logging
 from typing import Optional
-from megatron.training import get_args
-from transformers import AutoProcessor
 from megatron.core.packed_seq_params import PackedSeqParams
 from loongforge.models.common import BaseMegatronVisionModule
 from loongforge.models.encoder.vision_transformer_block import TransformerBlock
 from loongforge.models.utils import import_module
-from loongforge.models.common import BaseMegatronVisionModule
 
 from .ernie_adapter import UniqueNameGuard
 from .ernie_image_preprocess import ErnieImagePreprocess

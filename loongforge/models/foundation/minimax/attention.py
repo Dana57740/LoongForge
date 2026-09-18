@@ -10,7 +10,7 @@ from megatron.core.process_groups_config import ProcessGroupCollection
 from megatron.core.transformer.attention import Attention
 from megatron.core.transformer.spec_utils import ModuleSpec, build_module
 from dataclasses import dataclass
-from typing import NoReturn, Optional, Tuple, Union
+from typing import Union
 
 import torch
 
@@ -22,14 +22,13 @@ from megatron.core.parallel_state import (
     get_tensor_model_parallel_rank,
     get_tensor_model_parallel_world_size,
 )
-from megatron.core.transformer.spec_utils import ModuleSpec, build_module
 
 from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.transformer.transformer_config import TransformerConfig
 from megatron.core.extensions.transformer_engine import SplitAlongDim
 try:
     from flash_attn import flash_attn_with_kvcache
-except:
+except Exception:
     flash_attn_with_kvcache = None
 
 from megatron.core.tensor_parallel.mappings import (

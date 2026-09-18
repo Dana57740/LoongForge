@@ -4,13 +4,10 @@
 """Convert adapter checkpoints between Megatron Core and HuggingFace formats."""
 
 import os
-import io
 import sys
-import torch
 from os.path import dirname
 from copy import deepcopy
 
-from os.path import dirname
 SCRIPT_DIR = dirname(os.path.abspath(__file__))
 sys.path.append(dirname(dirname(SCRIPT_DIR)))
 

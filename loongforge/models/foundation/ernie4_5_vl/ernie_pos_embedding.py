@@ -6,7 +6,7 @@
 import torch
 from torch import Tensor, nn
 from megatron.core.transformer.transformer_config import TransformerConfig
-from typing import Any, Optional, Dict, List
+from typing import Optional
 
 
 class ErnieRopeEmbedding(nn.Module):

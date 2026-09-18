@@ -9,8 +9,7 @@ import tempfile
 from einops import rearrange
 from huggingface_hub import split_torch_state_dict_into_shards
 from safetensors.torch import save_file
-from transformers.modeling_utils import SAFE_WEIGHTS_INDEX_NAME, SAFE_WEIGHTS_NAME
-from pathlib import Path
+from transformers.modeling_utils import SAFE_WEIGHTS_INDEX_NAME
 import json
 
 parser = argparse.ArgumentParser(description="Process some checkpoints.")

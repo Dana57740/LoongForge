@@ -40,7 +40,7 @@ collator path continues to work unchanged.
 """
 
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import torch
 

@@ -43,7 +43,6 @@ after construction when needed for ablations.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
 
 
 @dataclass(frozen=True)

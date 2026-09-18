@@ -8,16 +8,13 @@
 
 import logging
 from contextlib import nullcontext
-from dataclasses import dataclass
 from typing import List, Optional, Union
 
 import torch
 from torch import Tensor
 import torch.nn.functional as F
 
-from megatron.core import parallel_state, tensor_parallel
-from megatron.core.dist_checkpointing.mapping import ShardedStateDict
-from megatron.core.dist_checkpointing.utils import replace_prefix_for_sharding
+from megatron.core import tensor_parallel
 from megatron.core.enums import Fp8Recipe
 from megatron.core.fp4_utils import get_fp4_context
 from megatron.core.fp8_utils import get_fp8_context
@@ -27,21 +24,12 @@ from megatron.core.packed_seq_params import PackedSeqParams
 from megatron.core.pipeline_parallel.fine_grained_activation_offload import (
     fine_grained_offloading_set_last_layer,
 )
-from megatron.core.pipeline_parallel.utils import is_vp_first_stage, is_vp_last_stage
 from megatron.core.process_groups_config import ProcessGroupCollection
-from megatron.core.transformer.enums import LayerType
-from megatron.core.transformer.module import GraphableMegatronModule, MegatronModule
-from megatron.core.transformer.spec_utils import ModuleSpec, build_module
+from megatron.core.transformer.spec_utils import ModuleSpec
 from megatron.core.transformer.transformer_config import TransformerConfig
-from megatron.core.transformer.transformer_layer import (
-    BaseTransformerLayer,
-    get_transformer_layer_offset,
-)
-from megatron.core.transformer.utils import sharded_state_dict_default
 from megatron.core.utils import (
     WrappedTensor,
     deprecate_inference_params,
-    get_pg_rank,
     make_viewless_tensor,
 )
 from megatron.core.transformer.transformer_block import (
@@ -69,7 +57,6 @@ te_checkpoint = None
 if HAVE_TE:
     from megatron.core.extensions.transformer_engine import (
         TENorm,
-        get_cpu_offload_context,
         te_checkpoint,
     )
 

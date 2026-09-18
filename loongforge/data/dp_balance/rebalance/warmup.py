@@ -9,7 +9,7 @@ import torch.distributed as dist
 import numpy as np
 from scipy.optimize import minimize
 
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Union
 
 from megatron.training import get_args
 from megatron.core import mpu
@@ -151,7 +151,7 @@ def set_warmup_c1(c1):
     iteration = args_train.curr_iteration
     if (
         not args_train.use_vlm_dp_balance
-        or not iteration in args_train.vlm_dp_balance_warmup_iters
+        or iteration not in args_train.vlm_dp_balance_warmup_iters
         or iteration == args_train.vlm_dp_balance_warmup_iters[0]
     ):
         return
@@ -181,7 +181,7 @@ def set_warmup_groups(data: Union[List[Dict[str, torch.Tensor]], Dict[str, torch
 
     if (
         not args_train.use_vlm_dp_balance
-        or not iteration in args_train.vlm_dp_balance_warmup_iters
+        or iteration not in args_train.vlm_dp_balance_warmup_iters
         or iteration == args_train.vlm_dp_balance_warmup_iters[0]
     ):
         return

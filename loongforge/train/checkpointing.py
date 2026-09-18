@@ -1496,7 +1496,6 @@ def _load_base_checkpoint(
         try:
             state_dict = torch.load(checkpoint_name, map_location='cpu', weights_only=False)
         except ModuleNotFoundError:
-            from megatron.legacy.fp16_deprecated import loss_scaler
 
             # For backward compatibility.
             if not rank0:
@@ -1795,7 +1794,7 @@ def _load_checkpoint_from_path(
             ckpt_format = "torch"
         elif ckpt_type in [CheckpointType.LOCAL, CheckpointType.GLOBAL]:
             ckpt_format = "torch_dist"
-        elif ckpt_type == None:
+        elif ckpt_type is None:
             pass  # Not loaded.
         else:
             raise NotImplementedError(f"checkpoint format {ckpt_format} not supported")

@@ -3,8 +3,7 @@
 
 """llama model"""
 
-from collections import OrderedDict
-from typing import Dict, Literal, Optional
+from typing import Optional
 
 import torch
 from torch import Tensor

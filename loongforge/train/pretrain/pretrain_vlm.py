@@ -10,7 +10,6 @@ import os
 import torch
 from functools import partial
 import copy
-import itertools
 
 from megatron.training import get_timers
 
@@ -23,7 +22,6 @@ from megatron.core.packed_seq_params import PackedSeqParams
 from megatron.core.utils import StragglerDetector, get_attr_wrapped_model
 from megatron.core import parallel_state
 
-from megatron.core.transformer.enums import AttnMaskType
 
 from transformers import DataCollatorForSeq2Seq
 
@@ -46,7 +44,6 @@ from loongforge.data.multimodal.dataloader_provider import (
 from loongforge.data.multimodal import build_task_encoder
 from datasets import load_from_disk
 
-from megatron.core import parallel_state
 
 from loongforge.models.omni_models.omni_model_provider import (
     omni_model_provider,
@@ -56,11 +53,8 @@ from loongforge.train.get_loss_func import default_loss_func
 from loongforge.train.initialize import (
     change_parallel_state,
     get_encoder_dp_size,
-    get_num_micro_batches_per_decoder_dp,
     is_mock_microbatch,
 )
-
-from loongforge.utils.global_vars import get_model_config
 
 stimer = StragglerDetector()
 

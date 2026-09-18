@@ -42,7 +42,6 @@ from megatron.core.transformer.transformer_config import MLATransformerConfig
 from megatron.core.utils import deprecate_inference_params
 from megatron.core.fp8_utils import is_float8tensor
 
-from loongforge.utils import get_args
 from loongforge.models.common.experimental_attention_variant.dsa_fused_utils import (
     shard_packed_cu_seqlens_for_sp_rank,
 )
@@ -58,7 +57,6 @@ except ImportError:
     _TELinear = None
 
 from .dsa_fused_kernels import (
-    fused_apply_mla_rope,
     fused_apply_mla_rope_for_absorb_kv,
     fused_rope_permute_cat,
 )

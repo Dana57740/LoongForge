@@ -218,8 +218,7 @@ class EE6DActionSpace(BaseActionSpace):
         def _masked_bce(logits, target_):
             # numerically-stable BCE-with-logits, elementwise:
             #   loss = max(l,0) - l*t + log(1 + exp(-|l|))
-            l = logits
-            per = l.clamp(min=0) - l * target_ + torch.log1p(torch.exp(-l.abs()))
+            per = logits.clamp(min=0) - logits * target_ + torch.log1p(torch.exp(-logits.abs()))
             per = per * vmask  # zero out padded rows
             # Original ``BCEWithLogitsLoss(mean)`` averages over all
             # elements = B*T*1; masked analog averages over n_valid*T*1.

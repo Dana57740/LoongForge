@@ -8,7 +8,6 @@ import sys
 import argparse
 from os.path import dirname
 
-from os.path import dirname
 SCRIPT_DIR = dirname(os.path.abspath(__file__))
 sys.path.append(dirname(dirname(SCRIPT_DIR)))
 

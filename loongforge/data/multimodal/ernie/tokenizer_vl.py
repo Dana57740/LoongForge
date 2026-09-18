@@ -20,7 +20,6 @@
 Ernie45VLTokenizer — HuggingFace transformers implementation.
 """
 
-import random
 import os
 import re
 import logging
@@ -32,7 +31,7 @@ import sentencepiece as spm
 
 # ── transformers replacements ─────────────────────────────────────────────────
 from transformers import PreTrainedTokenizer
-from transformers.tokenization_utils_base import PaddingStrategy, TensorType
+from transformers.tokenization_utils_base import PaddingStrategy
 
 TextInput = str
 logger = logging.getLogger(__name__)

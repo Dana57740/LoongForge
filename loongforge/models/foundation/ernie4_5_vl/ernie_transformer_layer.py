@@ -6,14 +6,11 @@
 
 """Transformer layer for Ernie."""
 
-from dataclasses import dataclass
 from typing import Optional
 
 import torch
 import logging
-import torch.nn as nn
-from copy import deepcopy
-from megatron.core import parallel_state, tensor_parallel
+from megatron.core import tensor_parallel
 from megatron.core.process_groups_config import ProcessGroupCollection
 from megatron.core.transformer.spec_utils import ModuleSpec, build_module
 from megatron.core.transformer.transformer_config import TransformerConfig

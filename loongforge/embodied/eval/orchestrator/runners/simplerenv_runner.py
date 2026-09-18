@@ -26,7 +26,6 @@ from loongforge.embodied.eval.orchestrator.config import (
     load_config,
 )
 from loongforge.embodied.eval.orchestrator.runners import _common
-from loongforge.embodied.eval.payload_builders import PayloadBuilder
 from loongforge.embodied.eval.transport import PolicyClient
 
 

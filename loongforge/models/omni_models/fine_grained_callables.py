@@ -9,7 +9,7 @@
 import weakref
 from contextlib import nullcontext
 from functools import partial
-from typing import Optional, Callable
+from typing import Callable
 
 import torch
 
@@ -1098,7 +1098,7 @@ def build_mtp_layer_callables(layer):
         # norm, linear projection and transformer
         assert (
             node.chunk_state.context is None
-        ), f"multi token prediction + cross attention is not yet supported."
+        ), "multi token prediction + cross attention is not yet supported."
 
         if layer.config.sequence_parallel:
             rng_context = tensor_parallel.get_cuda_rng_tracker().fork()

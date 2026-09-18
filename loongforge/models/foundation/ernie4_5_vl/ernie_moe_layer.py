@@ -16,7 +16,6 @@ from megatron.core.transformer.moe.moe_layer import (
 )
 from megatron.core.transformer.moe.moe_utils import get_default_pg_collection
 from megatron.core.transformer.spec_utils import ModuleSpec, build_module
-from megatron.core import parallel_state
 from megatron.core.transformer import TransformerConfig
 from megatron.core.extensions.transformer_engine import te_checkpoint
 from loongforge.utils import get_args

@@ -3,8 +3,7 @@
 
 """Minimax model"""
 
-import logging
-from typing import Dict, Literal, Optional, Any
+from typing import Optional
 
 import torch
 from torch import Tensor

@@ -4,7 +4,7 @@
 """register qwen model with different config"""
 
 from typing import List
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from loongforge.models.common.base_model_config import BaseModelConfig
 from loongforge.utils.constants import LanguageModelFamilies
 
