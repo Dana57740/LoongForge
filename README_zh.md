@@ -14,9 +14,10 @@
 
 <p align="center">
   <a href="https://github.com/baidu-baige/LoongForge/stargazers"><img src="https://img.shields.io/github/stars/baidu-baige/LoongForge?style=flat&logo=github&color=4F46E5" alt="GitHub stars"></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-green?logo=apache&logoColor=white" alt="License: Apache-2.0"></a>
   <a href="https://hub.docker.com/u/loongforge"><img src="https://img.shields.io/badge/Docker-loongforge-2496ED?logo=docker&logoColor=white" alt="Docker Hub 镜像"></a>
   <a href="./CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen?logo=github&logoColor=white" alt="欢迎 PR"></a>
+  <a href="https://github.com/baidu-baige/LoongForge/issues/80"><img src="https://img.shields.io/badge/WeChat-Group-07C160?logo=wechat&logoColor=white" alt="加入微信群"></a>
+  <a href="https://discord.gg/RnY39D6CM"><img src="https://img.shields.io/badge/Discord-Join_Us-5865F2?logo=discord&logoColor=white" alt="加入 Discord 社区"></a>
 </p>
 
 <p align="center">
