@@ -1616,6 +1616,39 @@ class _DistributedArgs:
                     "that removes the cap."
         },
     )
+    ddp_comm_hook_fp8_error_feedback: str = field(
+        default="none",
+        metadata={
+            "choices": ["none", "allgather", "both"],
+            "help": "fp8_a2a_allgather_hook only. Carry a quantization point's "
+                    "residual into the next step, which bounds the accumulated "
+                    "quantization bias at the cost of ~40% more per-step error. "
+                    "'allgather' keeps only the shard residual (0.5 extra bytes "
+                    "of resident scratch per element) and covers the larger of the "
+                    "two error contributions; 'both' also keeps the bucket-sized "
+                    "residual, for 4.5 bytes per element. Residuals are fp32: a "
+                    "lower-precision residual reintroduces the systematic drift "
+                    "error feedback exists to remove."
+        },
+    )
+    ddp_comm_hook_fp8_exempt: str = field(
+        default="1d,embed",
+        metadata={
+            "help": "fp8_a2a_allgather_hook only. Comma list of parameter classes "
+                    "kept at the exact fp32 cross-rank mean instead of being fp8 "
+                    "quantized (selective-precision exemption). Tokens: '1d' = "
+                    "every 1-D tensor (norm scales, biases -- tiny and highly "
+                    "loss-sensitive), 'embed' = params owned by an nn.Embedding "
+                    "module, 'head' = params owned by an output-head module "
+                    "(leaf named lm_head/output/score/classifier). Detection is "
+                    "structural, not name-substring, so it is model-agnostic. "
+                    "Default '1d,embed' recovers most of the fp8 loss gap at "
+                    "negligible cost; set '' to disable. Note: exempting a large "
+                    "trainable vocab embedding (e.g. tune_llm=True) can make the "
+                    "exempt set big -- use '1d' then; the per-bucket exempt "
+                    "fraction is logged at INFO so this is visible."
+        },
+    )
     dynamo_optimize_ddp: bool = field(
         default=True,
         metadata={

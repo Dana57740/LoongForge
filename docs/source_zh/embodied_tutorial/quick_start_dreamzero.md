@@ -210,7 +210,7 @@ CACHE_DIR=$DREAMZERO_CACHE_ROOT/dreamzero_full_wan22_5b SAMPLE_TRANSFORM_SEED=0 
 训练脚本会在启动阶段严格校验 cache。manifest、`_SUCCESS` 或 transform 配置不匹配时，训练会在执行首步前终止。
 
 ### 2.4 性能优化开关
-DROID 5B / 14B 配置已启用经过验证的默认性能优化。5B Full FSDP recipe 默认开启 Delta-FP8 AllGather，因此需要支持该功能的 CUDA/NCCL 环境；环境不支持或需要进行 A/B 对比时，可传入 `--no-fsdp-delta-fp8-allgather` 使用原生 BF16 AllGather。LIBERO、AgiBot 和 YAM 默认采用保守配置；调整性能开关后，建议先运行 3～10 步，检查 loss、grad norm 和显存占用。
+DROID 5B / 14B 配置已启用经过验证的默认性能优化。5B Full FSDP recipe 默认开启 Delta-FP8，因此需要支持该功能的 CUDA/NCCL 环境；环境不支持或需要进行 A/B 对比时，可传入 `--no-fsdp-delta-fp8-allgather` 使用原生 BF16 AllGather。LIBERO、AgiBot 和 YAM 默认采用保守配置；调整性能开关后，建议先运行 3～10 步，检查 loss、grad norm 和显存占用。
 
 对照组（关闭可选的模型侧优化和 Delta-FP8，用于定位 loss 或性能问题）：
 

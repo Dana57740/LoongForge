@@ -237,7 +237,14 @@ def _wrap_ddp(model: nn.Module, training_args, ctx: DistributedContext, dtype: t
                 block=training_args.ddp_comm_hook_fp8_block,
                 min_mib=training_args.ddp_comm_hook_fp8_min_mib,
                 max_scratch_gb=training_args.ddp_comm_hook_fp8_max_scratch_gb,
+                error_feedback=training_args.ddp_comm_hook_fp8_error_feedback,
+                exempt=training_args.ddp_comm_hook_fp8_exempt,
             )
+            # Selective-precision exemption (ddp_comm_hook_fp8_exempt) attributes
+            # bucket slices back to their owning module to decide per-element
+            # exemption; the comm hook only sees (state, bucket), so record the
+            # param-name / embedding / head maps now while the model is in hand.
+            fp8_a2a_comm.set_param_names(model)
         comm_hook = resolve_comm_hook(
             training_args.ddp_comm_hook,
             use_logging=training_args.ddp_comm_hook_logging,

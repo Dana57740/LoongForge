@@ -1,8 +1,8 @@
-# Delta-FP8 AllGather
+# FSDP2 Delta-FP8 Param AllGather
 
-Delta-FP8 AllGather 是 LoongForge embodied 训练栈中一项可选的 FSDP2 通信优化。它通过传输按 block 量化的 FP8 参数差值，代替完整 BF16 参数，从而减少参数 AllGather 通信量。该功能只改变通信精度，forward 和 backward 计算仍使用 FSDP 混合精度策略配置的 dtype。
+FSDP2 Delta-FP8 Param AllGather 是 LoongForge embodied 训练栈中一项可选的 FSDP2 通信优化。它通过传输按 block 量化的 FP8 参数差值，代替完整 BF16 参数，从而减少参数 AllGather 通信量。该功能只改变通信精度，forward 和 backward 计算仍使用 FSDP 混合精度策略配置的 dtype。
 
-Delta-FP8 AllGather 与 LoongForge 的端到端 [FP8 训练](fp8_training.md) 是两项独立功能。启用本功能不会将模型权重、激活或 GEMM 计算转为 FP8。
+Delta-FP8 压缩的是 **FSDP2 下的参数** AllGather。若需 **DDP 下的梯度** 通信压缩，见 [DDP FP8 Grad AllReduce](fp8_grad_comm_hook.md)。两者都与 LoongForge 端到端 [FP8 训练](fp8_training.md) 相互独立。启用本功能不会将模型权重、激活或 GEMM 计算转为 FP8。
 
 ## 1. 使用条件
 

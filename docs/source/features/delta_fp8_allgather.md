@@ -1,8 +1,8 @@
-# Delta-FP8 AllGather
+# FSDP2 Delta-FP8 Param AllGather
 
-Delta-FP8 AllGather is an opt-in FSDP2 communication optimization for the LoongForge embodied training stack. It reduces parameter AllGather traffic by communicating blockwise FP8 deltas instead of complete BF16 parameters. It changes communication precision only; forward and backward computation continue to use the dtype configured by the FSDP mixed-precision policy.
+FSDP2 Delta-FP8 Param AllGather is an opt-in FSDP2 communication optimization for the LoongForge embodied training stack. It reduces parameter AllGather traffic by communicating blockwise FP8 deltas instead of complete BF16 parameters. It changes communication precision only; forward and backward computation continue to use the dtype configured by the FSDP mixed-precision policy.
 
-Delta-FP8 AllGather is independent of LoongForge's end-to-end [FP8 training](fp8_training.md). Enabling this feature does not convert model weights, activations, or GEMMs to FP8.
+Delta-FP8 compresses **parameter** AllGather under FSDP2. For **gradient** communication under DDP, see the [DDP FP8 Grad AllReduce](fp8_grad_comm_hook.md). Both are independent of LoongForge's end-to-end [FP8 training](fp8_training.md). Enabling this feature does not convert model weights, activations, or GEMMs to FP8.
 
 ## 1. Requirements
 

@@ -407,11 +407,11 @@ The following arguments give fine-grained control over FSDP sharding, wrap polic
 | Unsharded parameter dtype | `--fsdp-unsharded-param-dtype` | `None` | `fp32`, `bf16`, `fp16` | Forward/backward dtype after all-gather |
 | Reduce dtype | `--fsdp-reduce-dtype` | `fp32` | `fp32`, `bf16`, `fp16` | Gradient reduce dtype |
 | Cast forward inputs | `--fsdp-cast-forward-inputs` | `True` | Bool flag | Whether to cast inputs to the parameter dtype |
-| Delta-FP8 AllGather | `--fsdp-delta-fp8-allgather` | `False` | Bool flag | Compress BF16 FSDP2 AllGather deltas into blockwise FP8; see the [usage guide](../features/delta_fp8_allgather.md) |
+| FSDP2 Delta-FP8 Param AllGather | `--fsdp-delta-fp8-allgather` | `False` | Bool flag | Compress BF16 FSDP2 AllGather deltas into blockwise FP8; see the [usage guide](../features/delta_fp8_allgather.md) |
 
 When replicating frozen module classes, every matched parameter must have `requires_grad=False`. This mode is incompatible with `--init-on-meta`; if `--fsdp-ignored-frozen-param-dtype` is specified, it must match the training compute dtype selected by `--dtype`.
 
-Delta-FP8 changes only FSDP parameter communication precision; model computation remains in the dtype selected by the FSDP mixed-precision policy. See [Delta-FP8 AllGather](../features/delta_fp8_allgather.md) for prerequisites, usage, parameter reference, and troubleshooting.
+Delta-FP8 changes only FSDP parameter communication precision; model computation remains in the dtype selected by the FSDP mixed-precision policy. See [FSDP2 Delta-FP8 Param AllGather](../features/delta_fp8_allgather.md) for prerequisites, usage, parameter reference, and troubleshooting.
 
 ### 4.3 Stability and Runtime Control
 

@@ -210,7 +210,7 @@ CACHE_DIR=$DREAMZERO_CACHE_ROOT/dreamzero_full_wan22_5b SAMPLE_TRANSFORM_SEED=0 
 The training script strictly validates the cache at startup. When manifest, `_SUCCESS`, or transform config mismatch, training aborts before the first step.
 
 ### 2.4 Performance Optimization Switches
-The DROID 5B / 14B configs enable validated default optimizations. The 5B Full FSDP recipe also enables Delta-FP8 AllGather by default and requires a supported CUDA/NCCL environment; pass `--no-fsdp-delta-fp8-allgather` to use native BF16 AllGather on an unsupported environment or for an A/B comparison. LIBERO, AgiBot, and YAM use conservative defaults. After adjusting performance switches, we recommend running 3–10 steps first and checking loss, grad norm, and memory usage.
+The DROID 5B / 14B configs enable validated default optimizations. The 5B Full FSDP recipe also enables Delta-FP8 by default and requires a supported CUDA/NCCL environment; pass `--no-fsdp-delta-fp8-allgather` to use native BF16 AllGather on an unsupported environment or for an A/B comparison. LIBERO, AgiBot, and YAM use conservative defaults. After adjusting performance switches, we recommend running 3–10 steps first and checking loss, grad norm, and memory usage.
 
 Control group (disable optional model-side optimizations and Delta-FP8 to isolate loss or performance issues):
 

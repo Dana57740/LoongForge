@@ -406,11 +406,11 @@ bash examples/embodied/pi05/run_pi05_ddp_finetune.sh \
 | unsharded 参数 dtype | `--fsdp-unsharded-param-dtype` | `None` | `fp32`, `bf16`, `fp16` | all-gather 后前向/反向 dtype |
 | reduce dtype | `--fsdp-reduce-dtype` | `fp32` | `fp32`, `bf16`, `fp16` | 梯度 reduce dtype |
 | cast forward inputs | `--fsdp-cast-forward-inputs` | `True` | 布尔开关 | 是否将输入 cast 到参数 dtype |
-| Delta-FP8 AllGather | `--fsdp-delta-fp8-allgather` | `False` | 布尔开关 | 将 BF16 FSDP2 AllGather 的参数差值按 block 压缩为 FP8；详见[使用文档](../features/delta_fp8_allgather.md) |
+| FSDP2 Delta-FP8 Param AllGather | `--fsdp-delta-fp8-allgather` | `False` | 布尔开关 | 将 BF16 FSDP2 AllGather 的参数差值按 block 压缩为 FP8；详见[使用文档](../features/delta_fp8_allgather.md) |
 
 复制冻结模块类时，所有命中参数都必须满足 `requires_grad=False`。该模式与 `--init-on-meta` 不兼容；若设置 `--fsdp-ignored-frozen-param-dtype`，其值必须与 `--dtype` 选择的训练计算 dtype 一致。
 
-Delta-FP8 只改变 FSDP 参数通信精度，模型计算仍使用 FSDP 混合精度策略选择的 dtype。使用条件、启动方式、参数说明和常见问题详见 [Delta-FP8 AllGather](../features/delta_fp8_allgather.md)。
+Delta-FP8 只改变 FSDP 参数通信精度，模型计算仍使用 FSDP 混合精度策略选择的 dtype。使用条件、启动方式、参数说明和常见问题详见 [FSDP2 Delta-FP8 Param AllGather](../features/delta_fp8_allgather.md)。
 
 ### 4.3 稳定性与运行时控制
 
