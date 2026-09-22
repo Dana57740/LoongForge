@@ -36,6 +36,8 @@ from loongforge.embodied.eval.payload_builders import build_payload_builder
 _BRIDGE_WIRING = {
     "ee6d_dual": ("xvla", "ee6d_dual", "ee6d_robotwin_ee_dual"),
     "pi05_aloha_14d": ("pi05", "aloha_pi", "pi05_aloha_robotwin"),
+    # VLDA converts joints server-side and returns absolute environment actions.
+    "vlda_joint14": ("vlda", "passthrough", ""),
     # LingBot-VA consumes no proprio (images + instruction only) and emits a
     # dual-arm ee pose relative to the episode's initial endpose.
     "lingbot_va_ee_quat_16d": ("lingbot_va", "", "lingbot_va_robotwin_ee_dual"),
@@ -264,4 +266,3 @@ def eval(TASK_ENV: Any, model: ModelClient, observation: Dict[str, Any]) -> None
         instruction = str(TASK_ENV.get_instruction())
         action = model.step(observation, instruction=instruction, step=TASK_ENV.take_action_cnt)
         TASK_ENV.take_action(action)
-
