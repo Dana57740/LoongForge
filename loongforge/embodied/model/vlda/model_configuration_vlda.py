@@ -56,11 +56,16 @@ class VLDAModelConfig:
     world_inference_steps: int = 3
     action_inference_steps: int = 10
     vjepa: VJEPA2Config = field(default_factory=VJEPA2Config)
+    vjepa_deterministic_sdpa: bool = False
     vjepa_checkpoint: str = ""
     vjepa_online_key: str = "encoder"
     vjepa_teacher_key: str = "target_encoder"
 
     def __post_init__(self):
+        if self.vjepa_deterministic_sdpa and not self.vjepa.use_sdpa:
+            raise ValueError("vjepa_deterministic_sdpa requires use_sdpa=True")
+        if self.vjepa_deterministic_sdpa and self.compile_model:
+            raise ValueError("Deterministic V-JEPA SDPA is currently validated for eager execution only")
         if self.attention_backend not in ("eager", "flex"):
             raise ValueError("VLDA attention_backend must be eager or flex")
         if self.stage not in (1, 2):

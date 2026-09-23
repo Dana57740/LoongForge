@@ -107,8 +107,8 @@ class VLDAPytorch(nn.Module):
             compile_model=config.compile_model,
             compile_mode=config.compile_mode,
         )
-        self.vjepa_encoder = VJEPA2Encoder(config.vjepa)
-        self.teacher_vjepa_encoder = VJEPA2Encoder(config.vjepa)
+        self.vjepa_encoder = VJEPA2Encoder(config.vjepa, deterministic_sdpa=config.vjepa_deterministic_sdpa)
+        self.teacher_vjepa_encoder = VJEPA2Encoder(config.vjepa, deterministic_sdpa=config.vjepa_deterministic_sdpa)
         vjepa_dim = config.vjepa.embed_dim
         world_dim = world_expert_config.width
         self.delta_high_to_low = nn.Sequential(

@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 class VJEPA2Encoder(nn.Module):
     """Construct the encoder without implicitly loading external weights."""
 
-    def __init__(self, config: VJEPA2Config):
+    def __init__(self, config: VJEPA2Config, *, deterministic_sdpa: bool = False):
         super().__init__()
+        if deterministic_sdpa and not config.use_sdpa:
+            raise ValueError("deterministic_sdpa requires use_sdpa=True")
         from .vjepa2.vision_transformer import VisionTransformer
 
         self.config = config
@@ -39,6 +41,12 @@ class VJEPA2Encoder(nn.Module):
             uniform_power=config.uniform_power,
             norm_layer=partial(nn.LayerNorm, eps=config.norm_layer_eps),
         )
+        if deterministic_sdpa:
+            from .deterministic_sdpa import deterministic_vjepa_sdpa
+
+            for block in self.encoder.blocks:
+                block.attn.sdpa = deterministic_vjepa_sdpa
+            logger.warning("V-JEPA single-split SDPA backward enabled (eager diagnostic; revised determinism policy)")
 
     def load_encoder_state(self, state_dict: dict):
         """Load one encoder entry from an original V-JEPA2 checkpoint."""

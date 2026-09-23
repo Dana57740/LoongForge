@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
+from PIL import Image
 
 from loongforge.embodied.data.datasets.transforms.registry import register_transform_builder
 from loongforge.embodied.data.datasets.transforms.utils.normalizer import Normalizer
@@ -49,7 +50,7 @@ def decode_actions(actions, state, data_cfg):
     return actions
 
 
-def resize_image(image, size):
+def resize_image(image, size, backend="loongforge"):
     """Antialiased linear resize and black padding, before uint8 normalization."""
     image = torch.as_tensor(np.asarray(image).copy())
     if image.shape[-1] != 3:
@@ -59,6 +60,11 @@ def resize_image(image, size):
     height, width = image.shape[:2]
     ratio = max(height / size, width / size)
     new_height, new_width = int(height / ratio), int(width / ratio)
+    if backend == "native":
+        resized = Image.fromarray(image.numpy()).resize((new_width, new_height), resample=Image.Resampling.BILINEAR)
+        canvas = Image.new("RGB", (size, size))
+        canvas.paste(resized, ((size - new_width) // 2, (size - new_height) // 2))
+        return raw_image_tensor(np.asarray(canvas))
     image = (
         F.interpolate(
             image.permute(2, 0, 1)[None].float(),
@@ -111,6 +117,22 @@ class VLDATokenizer:
         return ids, mask
 
 
+class NativeQuantileNormalizer:
+    """Match native VLDA's NumPy statistics precision and additive epsilon."""
+
+    def __init__(self, statistics):
+        self.q01 = np.asarray(statistics["q01"])
+        self.q99 = np.asarray(statistics["q99"])
+
+    def __call__(self, value):
+        normalized = (np.asarray(value) - self.q01) / (self.q99 - self.q01 + 1e-6) * 2 - 1
+        return torch.from_numpy(normalized)
+
+    def inverse(self, value):
+        unnormalized = (np.asarray(value) + 1) / 2 * (self.q99 - self.q01 + 1e-6) + self.q01
+        return torch.from_numpy(unnormalized)
+
+
 class VLDATransform:
     """Build VLDA observations using LF normalization and state-conditioned prompts."""
 
@@ -129,8 +151,12 @@ class VLDATransform:
                         "Add quantile statistics to dataset/meta/stats.json or set data.norm_stats_path "
                         "to a statistics file containing q01/q99."
                     )
-        self.state_normalizer = Normalizer(data_cfg.normalization_mode, self.stats["state"])
-        self.action_normalizer = Normalizer(data_cfg.normalization_mode, self.stats["actions"])
+        if data_cfg.preprocessing_backend == "native":
+            self.state_normalizer = NativeQuantileNormalizer(self.stats["state"])
+            self.action_normalizer = NativeQuantileNormalizer(self.stats["actions"])
+        else:
+            self.state_normalizer = Normalizer(data_cfg.normalization_mode, self.stats["state"])
+            self.action_normalizer = Normalizer(data_cfg.normalization_mode, self.stats["actions"])
         self.tokenizer = VLDATokenizer(tokenizer_path, data_cfg.max_token_len)
 
     def __call__(self, sample):
@@ -143,23 +169,23 @@ class VLDATransform:
             image_masks[key] = torch.tensor(image is not None)
             if image is None:
                 image = np.zeros_like(sample["images"][0])
-            images[key] = resize_image(image, data.image_size)
+            images[key] = resize_image(image, data.image_size, data.preprocessing_backend)
         output = {
             "images": images,
             "image_masks": image_masks,
-            "state": F.pad(state, (0, cfg.max_state_dim - state.shape[-1])),
+            "state": F.pad(state.float(), (0, cfg.max_state_dim - state.shape[-1])),
             "tokenized_prompt": tokens,
             "tokenized_prompt_mask": mask,
         }
         if "actions" in sample:
             actions = encode_actions(sample["actions"], raw_state, data)
             actions = self.action_normalizer(torch.as_tensor(actions, dtype=torch.float32))
-            output["actions"] = F.pad(actions, (0, cfg.max_action_dim - actions.shape[-1]))
+            output["actions"] = F.pad(actions.float(), (0, cfg.max_action_dim - actions.shape[-1]))
         if "neg_actions" in sample:
             neg_states = encode_state(sample["neg_states"], data.adapt_to_pi)
             negatives = encode_actions(sample["neg_actions"], neg_states, data)
             negatives = self.action_normalizer(torch.as_tensor(negatives, dtype=torch.float32))
-            output["neg_actions"] = F.pad(negatives, (0, cfg.max_action_dim - negatives.shape[-1]))
+            output["neg_actions"] = F.pad(negatives.float(), (0, cfg.max_action_dim - negatives.shape[-1]))
         for key in ("vjepa_image", "vjepa_future_image"):
             if key in sample:
                 output[key] = {IMAGE_KEYS[0]: raw_image_tensor(sample[key])}

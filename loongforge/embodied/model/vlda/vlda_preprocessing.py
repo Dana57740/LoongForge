@@ -89,6 +89,7 @@ def preprocess_siglip_observation(
         is_channels_first = image.shape[1] == 3
         if is_channels_first:
             image = image.permute(0, 2, 3, 1)
+        image = image.contiguous()
         if image.shape[1:3] != image_resolution:
             logger.info(f"Resizing image {key} from {image.shape[1:3]} to {image_resolution}")
             image = resize_with_pad_torch(image, *image_resolution)

@@ -286,6 +286,7 @@ class RoPEAttention(nn.Module):
         self.proj_drop_prob = proj_drop
         self.proj_drop = nn.Dropout(proj_drop)
         self.use_sdpa = use_sdpa
+        self.sdpa = F.scaled_dot_product_attention
         # --
         self.d_dim = int(2 * ((head_dim // 3) // 2))
         self.h_dim = int(2 * ((head_dim // 3) // 2))
@@ -371,12 +372,12 @@ class RoPEAttention(nn.Module):
 
         if attn_mask is not None or self.use_sdpa:
             with torch.backends.cuda.sdp_kernel():
-                x = F.scaled_dot_product_attention(
+                x = self.sdpa(
                     q, k, v, dropout_p=self.proj_drop_prob, is_causal=self.is_causal, attn_mask=attn_mask
                 )
                 attn = None
         else:
-            attn = (q @ k.transpose(-2, -1)) * self.scale  # [B, num_heads, D, D]
+            attn = (q @ k.transpose(-2, -1)) * self.scale
             attn = attn.softmax(dim=-1)
             attn = self.attn_drop(attn)
             x = attn @ v
@@ -409,6 +410,7 @@ class Attention(nn.Module):
         self.proj_drop_prob = proj_drop
         self.proj_drop = nn.Dropout(proj_drop)
         self.use_sdpa = use_sdpa
+        self.sdpa = F.scaled_dot_product_attention
         self.is_causal = is_causal
 
     def forward(self, x, mask=None, attn_mask=None):
@@ -418,7 +420,7 @@ class Attention(nn.Module):
 
         if attn_mask is not None or self.use_sdpa:
             with torch.backends.cuda.sdp_kernel():
-                x = F.scaled_dot_product_attention(
+                x = self.sdpa(
                     q, k, v, dropout_p=self.proj_drop_prob, is_causal=self.is_causal, attn_mask=attn_mask
                 )
                 attn = None

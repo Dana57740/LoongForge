@@ -25,6 +25,8 @@ export CUBLAS_WORKSPACE_CONFIG=:4096:8
 
 : "${DATA_PATH:?Set DATA_PATH to the VLDA LeRobot v2 dataset}"
 : "${TOKENIZER_PATH:?Set TOKENIZER_PATH to paligemma_tokenizer.model}"
+NORM_STATS_PATH=${NORM_STATS_PATH:-"$DATA_PATH/norm_stats.json"}
+PREPROCESSING_BACKEND=${PREPROCESSING_BACKEND:-native}
 
 case "$STAGE" in
     1)
@@ -79,13 +81,16 @@ ARGS=(
     --lr-warmup-iters "$WARMUP_ITERS" --lr-decay-iters "$TRAIN_ITERS"
     --distributed-strategy ddp --dtype bfloat16
     --ddp-find-unused-parameters --ddp-gradient-as-bucket-view
-    --ddp-static-graph --no-dynamo-optimize-ddp
+    --no-dynamo-optimize-ddp
     --no-check-for-nan-in-loss-and-grad --loss-spike-threshold inf
     --save-format safetensors --save-interval "$SAVE_INTERVAL"
     --log-interval "${LOG_INTERVAL:-100}"
     --tensorboard-dir "$TENSORBOARD_DIR"
 )
-MODEL_OVERRIDES=("model.stage=$STAGE")
+if [[ "${DDP_STATIC_GRAPH:-0}" == 1 ]]; then
+    ARGS+=(--ddp-static-graph)
+fi
+MODEL_OVERRIDES=("model.stage=$STAGE" "data.norm_stats_path=$NORM_STATS_PATH" "data.preprocessing_backend=$PREPROCESSING_BACKEND")
 if [[ "$RESUME" == 1 ]]; then
     ARGS+=(--resume)
 else
@@ -124,5 +129,5 @@ echo "Stage $STAGE: output=$OUTPUT_DIR; console log=$LOG_FILE"
 torchrun \
     --nproc_per_node "$GPUS_PER_NODE" --nnodes "$NNODES" --node_rank "$NODE_RANK" \
     --master_addr "${MASTER_ADDR:-localhost}" --master_port "${MASTER_PORT:-29500}" \
-    "$LOONGFORGE_PATH/loongforge/embodied/train.py" "${ARGS[@]}" "${MODEL_OVERRIDES[@]}" \
+    "$LOONGFORGE_PATH/loongforge/embodied/train.py" "${ARGS[@]}" -- "${MODEL_OVERRIDES[@]}" \
     2>&1 | tee -a "$LOG_FILE"
