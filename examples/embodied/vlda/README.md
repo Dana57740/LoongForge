@@ -257,9 +257,32 @@ that preset against the actual dataset before a full training run.
 
 ## Evaluation
 
-Use `eval/configs/libero/object_smoke.yaml` with the existing eval orchestrator
-and fill in the local paths. Evaluation requires stage 2. The factory loads
-the checkpoint's data settings and stats, then removes training-only modules.
+Run the shared eval orchestrator with a Stage 2 checkpoint:
+
+```bash
+CHECKPOINT_PATH=/path/to/stage2/checkpoints/steps_80000 \
+EVAL_DIR=outputs/vlda/eval_stage2_80000 CUDA_VISIBLE_DEVICES=0 \
+bash examples/embodied/vlda/eval/run_libero_eval.sh
+```
+
+The launcher prepares the checkpoint config, then manages the server and client
+through the same orchestrator as pi05. It defaults to four LIBERO suites with
+50 episodes per task. For a smoke run, set `MAX_TASKS=1 EPISODES_PER_TASK=1` and
+append `libero_object`. Override `BENCHMARK_PYTHON`, `SERVER_PYTHON`, and
+`LIBERO_ROOT` to change the environments. Results are grouped by suite under
+`EVAL_DIR`; `PREPARE_ONLY=1` generates the YAML without starting evaluation.
+
+Alternatively, fill the paths in `eval/configs/libero/libero.yaml` and run:
+
+```bash
+CONFIG=examples/embodied/vlda/eval/configs/libero/libero.yaml \
+CUDA_VISIBLE_DEVICES=0 bash examples/embodied/vlda/eval/run_libero_eval.sh
+```
+
+With `CONFIG`, preparation is skipped and evaluation settings/output paths come
+from YAML. Both routes default to client seed `7` with server seeding disabled.
+
+The factory loads the checkpoint's data settings and stats, then removes training-only modules.
 Inference uses three world steps followed by ten action steps and requires no
 future observation or V-JEPA encoder. The LIBERO payload supplies the same 8D
 state layout as training: end-effector position, axis-angle rotation, and both

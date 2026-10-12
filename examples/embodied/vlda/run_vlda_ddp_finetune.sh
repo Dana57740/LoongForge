@@ -79,6 +79,7 @@ ARGS=(
     --lr-base "$PEAK_LR" --min-lr "$MIN_LR"
     --lr-decay-style cosine_with_min_lr --custom-lr-lambda
     --lr-warmup-iters "$WARMUP_ITERS" --lr-decay-iters "$TRAIN_ITERS"
+    --lr-decay-start-iters "${LR_DECAY_START_ITERS:-0}"
     --distributed-strategy ddp --dtype bfloat16
     --ddp-find-unused-parameters --ddp-gradient-as-bucket-view
     --no-dynamo-optimize-ddp

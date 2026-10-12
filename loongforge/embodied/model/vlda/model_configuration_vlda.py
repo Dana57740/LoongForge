@@ -44,7 +44,7 @@ class VLDAModelConfig:
     delta_token_num: int = 16
     delta_latent_dim: int = 256
     contrast_dim: int = 256
-    align_loss_weight: float = 0.1
+    align_loss_weight: float = 0.01
     dtype: str = "bfloat16"
     gradient_checkpointing: bool = True
     disable_train_autocast: bool = True

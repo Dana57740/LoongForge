@@ -66,6 +66,7 @@ class VLDAFinetuneTrainer(FinetuneTrainer):
             "min_lr",
             "lr_warmup_iters",
             "lr_decay_iters",
+            "lr_decay_start_iters",
             "lr_decay_style",
             "custom_lr_lambda",
             "optimizer",
@@ -93,6 +94,8 @@ class VLDAFinetuneTrainer(FinetuneTrainer):
         stats_path = Path(path) / "assets/norm_stats.json"
         if hashlib.sha256(stats_path.read_bytes()).hexdigest() != manifest["norm_stats_sha256"]:
             raise ValueError("VLDA checkpoint normalization statistics changed")
+        # Older checkpoints always decayed immediately after warmup.
+        manifest["resume_contract"]["training"].setdefault("lr_decay_start_iters", 0)
         if manifest["resume_contract"] != self._resume_contract():
             raise ValueError("VLDA resume configuration changed; use --pretrained-checkpoint for a new run")
         self._resume_vlda_manifest = manifest
