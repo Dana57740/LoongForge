@@ -43,10 +43,6 @@ class EvalServerArgs:
     # Device / dtype
     device: str = "cuda"
     use_bf16: bool = True
-    float32_matmul_precision: str | None = None
-
-    # Optional inference seed; unset preserves the process defaults.
-    seed: int | None = None
 
     # Init mode
     random_init: bool = False

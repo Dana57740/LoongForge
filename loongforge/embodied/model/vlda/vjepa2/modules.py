@@ -2,6 +2,8 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+#
+# LoongForge integration: retain the VLDA fork's public timm.layers import.
 
 import torch
 import torch.nn as nn
@@ -286,7 +288,6 @@ class RoPEAttention(nn.Module):
         self.proj_drop_prob = proj_drop
         self.proj_drop = nn.Dropout(proj_drop)
         self.use_sdpa = use_sdpa
-        self.sdpa = F.scaled_dot_product_attention
         # --
         self.d_dim = int(2 * ((head_dim // 3) // 2))
         self.h_dim = int(2 * ((head_dim // 3) // 2))
@@ -372,12 +373,12 @@ class RoPEAttention(nn.Module):
 
         if attn_mask is not None or self.use_sdpa:
             with torch.backends.cuda.sdp_kernel():
-                x = self.sdpa(
+                x = F.scaled_dot_product_attention(
                     q, k, v, dropout_p=self.proj_drop_prob, is_causal=self.is_causal, attn_mask=attn_mask
                 )
                 attn = None
         else:
-            attn = (q @ k.transpose(-2, -1)) * self.scale
+            attn = (q @ k.transpose(-2, -1)) * self.scale  # [B, num_heads, D, D]
             attn = attn.softmax(dim=-1)
             attn = self.attn_drop(attn)
             x = attn @ v
@@ -410,7 +411,6 @@ class Attention(nn.Module):
         self.proj_drop_prob = proj_drop
         self.proj_drop = nn.Dropout(proj_drop)
         self.use_sdpa = use_sdpa
-        self.sdpa = F.scaled_dot_product_attention
         self.is_causal = is_causal
 
     def forward(self, x, mask=None, attn_mask=None):
@@ -420,7 +420,7 @@ class Attention(nn.Module):
 
         if attn_mask is not None or self.use_sdpa:
             with torch.backends.cuda.sdp_kernel():
-                x = self.sdpa(
+                x = F.scaled_dot_product_attention(
                     q, k, v, dropout_p=self.proj_drop_prob, is_causal=self.is_causal, attn_mask=attn_mask
                 )
                 attn = None

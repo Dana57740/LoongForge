@@ -1,6 +1,7 @@
-# VLDA Stage 2 LIBERO evaluation. Fill /path/to/... before running with CONFIG.
+# VLDA Stage 2 LIBERO evaluation. Fill /path/to/... before running.
 # Default: four suites, all tasks, 50 episodes/task.
-# Model dimensions must match the checkpoint's vlda_config.json.
+# Model settings below match the default LIBERO training recipe.
+# Match them to the checkpoint's vlda_config.json if using a different recipe.
 benchmark:
   name: libero
   suite: libero_object
@@ -20,13 +21,18 @@ model:
   action_dim: 7
   state_dim: 8
   action_horizon: 10
-  delta_token_num: 16
+  max_action_dim: 32
+  max_state_dim: 32
   discrete_state_input: true
+  delta_token_num: 16
+  delta_latent_dim: 256
+  contrast_dim: 256
+  world_inference_steps: 3
+  action_inference_steps: 10
   gradient_checkpointing: false
   compile_model: false
   attention_backend: eager
-  world_inference_steps: 3
-  action_inference_steps: 10
+  vjepa_checkpoint: ""  # encoder weights are already included in the VLDA checkpoint
   state_encoding: libero_ee_axis_angle
   action_encoding: axis_angle
 
@@ -36,13 +42,11 @@ server:
   health_port: 12094
   python: /path/to/LoongForge/.venv/bin/python
   start_timeout_sec: 900
-  ckpt_path: /path/to/stage2/checkpoints/steps_80000
-  dataset_statistics_path: /path/to/stage2/checkpoints/steps_80000/assets/norm_stats.json
+  ckpt_path: /path/to/LoongForge/outputs/vlda/libero_stage2/checkpoints/steps_60000
+  dataset_statistics_path: /path/to/LoongForge/outputs/vlda/libero_stage2/checkpoints/steps_60000/assets/norm_stats.json
   tokenizer_path: /path/to/paligemma_tokenizer.model
   loongforge_root: /path/to/LoongForge
   use_bf16: false
-  float32_matmul_precision: high
-  seed: null  # opt-in; independent of the client seed below
 
 env:
   eval_root: /path/to/LoongForge/loongforge/embodied/eval
@@ -58,7 +62,8 @@ run:
   save_replay: true
   timestamped_output: false
 
-# Keep only the suites to evaluate. Each gets its own result/log directory.
+# Keep only the suites to evaluate. Results and policy_server.log go into
+# run.output_dir/<run.id>/ for each suite.
 sweep:
   - benchmark.suite: libero_spatial
     run.id: libero_spatial

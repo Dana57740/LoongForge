@@ -96,20 +96,6 @@ def main() -> None:
     if not server_args.ckpt_path and not server_args.random_init:
         raise SystemExit("checkpoint must be set by server.ckpt_path in YAML unless server.random_init is true")
 
-    if server_args.seed is not None:
-        import random
-
-        import numpy as np
-        import torch
-
-        random.seed(server_args.seed)
-        np.random.seed(server_args.seed)
-        torch.manual_seed(server_args.seed)
-    if server_args.float32_matmul_precision is not None:
-        import torch
-
-        torch.set_float32_matmul_precision(server_args.float32_matmul_precision)
-
     logging.basicConfig(level=logging.INFO, force=True)
     model_spec = build_model_spec(server_args, raw_model_dict)
     _warmup_model(model_spec)

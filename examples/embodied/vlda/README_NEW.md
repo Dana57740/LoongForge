@@ -35,9 +35,10 @@ LoongForge/
 └── outputs/vlda/
 ```
 
-All asset paths can be overridden through the environment variables shown
-below. VLDA training and inference use code in this repository; they do not
-require a separate VLDA checkout or patched Transformers installation.
+Training asset paths can be overridden through the environment variables shown
+below; evaluation paths are set in the YAML. VLDA training and inference use
+code in this repository; they do not require a separate VLDA checkout or
+patched Transformers installation.
 
 ## 1. Training environment
 
@@ -63,7 +64,6 @@ uv pip install --python .venv/bin/python \
     --index-url https://download.pytorch.org/whl/cu128
 
 uv pip install --python .venv/bin/python \
-    torch==2.8.0 torchvision==0.23.0 torchcodec==0.7.0 \
     lerobot==0.5.0 transformers==5.3.0 torchdata==0.11.0 \
     sentencepiece timm==1.0.3 pandas pyarrow tensorboard \
     websockets==15.0.1 msgpack
@@ -316,63 +316,57 @@ uv pip install --python .venv-libero/bin/python --no-deps -e third_party/LIBERO
 ```
 
 The LIBERO checkout supplies task definitions, assets, and initial states.
-The launcher defaults to EGL offscreen rendering; the host/container must
-expose NVIDIA EGL graphics libraries. On a machine configured for OSMesa,
-set `MUJOCO_GL=osmesa PYOPENGL_PLATFORM=osmesa` and install the corresponding
-OSMesa system library (`libosmesa6` on Ubuntu).
+The evaluation YAML defaults to EGL offscreen rendering; the host/container
+must expose NVIDIA EGL graphics libraries. On a machine configured for
+OSMesa, set `env.mujoco_gl` and `env.pyopengl_platform` to `osmesa` in the
+YAML and install the corresponding system library (`libosmesa6` on Ubuntu).
 
 An existing working LIBERO environment can be reused by setting
 `BENCHMARK_PYTHON=/path/to/libero/.venv/bin/python` and
-`LIBERO_ROOT=/path/to/LIBERO`. The model server independently uses
-`SERVER_PYTHON`, defaulting to `LoongForge/.venv/bin/python`.
+`LIBERO_ROOT=/path/to/LIBERO`. Set the model server's Python environment
+separately with `server.python` in the YAML.
 
 ### Run evaluation
 
-Start with a single task and episode:
+First edit [libero.yaml](eval/configs/libero/libero.yaml):
+
+- Fill the absolute paths for `server.python`, `server.ckpt_path`,
+  `server.dataset_statistics_path`, `server.tokenizer_path`, and the
+  repository paths under `server` and `env`.
+- Set `env.libero_config_path` and `run.output_dir` to the desired local
+  configuration and results directories. Use the checkpoint's
+  `assets/norm_stats.json` for normalization.
+- Check that `model` matches the trained checkpoint's dimensions and
+  settings. The supplied values describe the default LIBERO Stage 2 model.
+- Keep the desired suites in `sweep`. For a smoke test, keep only
+  `libero_object` and set `benchmark.max_tasks: 1` and
+  `benchmark.episodes_per_task: 1`.
+
+Then run:
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
-CHECKPOINT_PATH="$PWD/outputs/vlda/libero_stage2/checkpoints/steps_60000" \
-EVAL_DIR="$PWD/outputs/vlda/eval_smoke" \
-MAX_TASKS=1 EPISODES_PER_TASK=1 \
-bash examples/embodied/vlda/eval/run_libero_eval.sh libero_object
-```
-
-Then evaluate all four suites:
-
-```bash
-CUDA_VISIBLE_DEVICES=0 \
-CHECKPOINT_PATH="$PWD/outputs/vlda/libero_stage2/checkpoints/steps_60000" \
-EVAL_DIR="$PWD/outputs/vlda/eval_stage2_60000" \
+BENCHMARK_PYTHON="$PWD/.venv-libero/bin/python" \
 bash examples/embodied/vlda/eval/run_libero_eval.sh
 ```
 
 By default this runs `libero_spatial`, `libero_object`, `libero_10`, and
-`libero_goal`, each with **10 tasks × 50 episodes = 500 episodes**. Pass
-suite names after the script to select a subset. Each suite gets a separate
-directory with `results.jsonl`, `summary.csv`, `suite_summary.csv`,
-`server.log`, and rollout artifacts; success rates are computed per suite.
-The evaluation root also stores `eval.yaml` and `client.log`.
+`libero_goal`, each with **10 tasks × 50 episodes = 500 episodes**. Each
+suite gets a separate directory under `run.output_dir`, with
+`results.jsonl`, `summary.csv`, `suite_summary.csv`, `policy_server.log`,
+and rollout artifacts; success rates are computed per suite.
 
-The automatic configuration reads model settings and normalization assets
-from the Stage 2 checkpoint. It uses eager inference with compilation and
-gradient checkpointing disabled. Client seed defaults to `7`; the server
-seed is unset by default. Append `--server-seed 42` when a fixed server seed
-is wanted. Set `PREPARE_ONLY=1` to generate and inspect the configuration
-without loading a model or launching a simulation.
-
-For manual configuration, edit the paths and model settings in
-[libero.yaml](eval/configs/libero/libero.yaml), then run:
+The YAML uses eager inference with compilation and gradient checkpointing
+disabled. `run.seed` fixes the client seed, defaulting to `7`; the server
+seed is not fixed. All evaluation settings come from the YAML. To use a
+different configuration:
 
 ```bash
-CONFIG=examples/embodied/vlda/eval/configs/libero/libero.yaml \
 CUDA_VISIBLE_DEVICES=0 \
+BENCHMARK_PYTHON="$PWD/.venv-libero/bin/python" \
+CONFIG=/path/to/libero.yaml \
 bash examples/embodied/vlda/eval/run_libero_eval.sh
 ```
-
-In this mode the checkpoint, server Python, output directory, and evaluation
-settings come from the YAML. `BENCHMARK_PYTHON` still selects the client
-environment.
 
 ## Code layout
 
@@ -384,6 +378,12 @@ environment.
 | Dataset and transforms | [vlda/](../../../loongforge/embodied/data/datasets/vlda/) |
 | Teacher EMA and checkpoint integration | [vlda_finetune_trainer.py](../../../loongforge/embodied/train/trainers/custom/vlda/vlda_finetune_trainer.py) |
 | Evaluation entry | [run_libero_eval.sh](eval/run_libero_eval.sh) |
+
+## V-JEPA 2
+
+VLDA uses part of [V-JEPA 2](https://github.com/facebookresearch/vjepa2)'s
+encoder code with minor integration changes. The original
+[MIT license](../../../loongforge/embodied/model/vlda/vjepa2/LICENSE) is included.
 
 ## Acknowledgements
 

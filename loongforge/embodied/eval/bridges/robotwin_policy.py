@@ -36,8 +36,6 @@ from loongforge.embodied.eval.payload_builders import build_payload_builder
 _BRIDGE_WIRING = {
     "ee6d_dual": ("xvla", "ee6d_dual", "ee6d_robotwin_ee_dual"),
     "pi05_aloha_14d": ("pi05", "aloha_pi", "pi05_aloha_robotwin"),
-    # VLDA converts joints server-side and returns absolute environment actions.
-    "vlda_joint14": ("vlda", "passthrough", ""),
     # LingBot-VA consumes no proprio (images + instruction only) and emits a
     # dual-arm ee pose relative to the episode's initial endpose.
     "lingbot_va_ee_quat_16d": ("lingbot_va", "", "lingbot_va_robotwin_ee_dual"),

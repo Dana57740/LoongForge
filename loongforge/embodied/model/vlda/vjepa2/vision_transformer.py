@@ -2,6 +2,8 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+#
+# LoongForge modifications: use package-relative imports and project formatting.
 
 import math
 from functools import partial
