@@ -227,7 +227,7 @@ CHECKPOINT_PATH="$PWD/models/pi05_base_pytorch" \
 VJEPA_CHECKPOINT="$PWD/models/vjepa2/vitg.pt" \
 OUTPUT_DIR="$PWD/outputs/vlda/libero_stage1" \
 RESUME=0 \
-bash examples/embodied/vlda/run_vlda_8gpu_stage1.sh
+bash cookbook/embodied/vlda/run_vlda_8gpu_stage1.sh
 ```
 
 ### Stage 2: world-conditioned action learning
@@ -245,7 +245,7 @@ TOKENIZER_PATH="$PWD/models/paligemma_tokenizer.model" \
 CHECKPOINT_PATH="$INIT_CHECKPOINT" \
 OUTPUT_DIR="$PWD/outputs/vlda/libero_stage2" \
 RESUME=0 \
-bash examples/embodied/vlda/run_vlda_8gpu_stage2.sh
+bash cookbook/embodied/vlda/run_vlda_8gpu_stage2.sh
 ```
 
 Use `GPUS_PER_NODE` and `CUDA_VISIBLE_DEVICES` together when changing the
@@ -280,7 +280,7 @@ DATA_PATH="$PWD/datasets/libero" \
 TOKENIZER_PATH="$PWD/models/paligemma_tokenizer.model" \
 OUTPUT_DIR="$PWD/outputs/vlda/libero_stage2" \
 RESUME=1 \
-bash examples/embodied/vlda/run_vlda_8gpu_stage2.sh
+bash cookbook/embodied/vlda/run_vlda_8gpu_stage2.sh
 ```
 
 Resume restores the saved training state and statistics. To start a new run
@@ -347,7 +347,7 @@ Then run:
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
 BENCHMARK_PYTHON="$PWD/.venv-libero/bin/python" \
-bash examples/embodied/vlda/eval/run_libero_eval.sh
+bash cookbook/embodied/vlda/eval/run_libero_eval.sh
 ```
 
 By default this runs `libero_spatial`, `libero_object`, `libero_10`, and
@@ -365,7 +365,7 @@ different configuration:
 CUDA_VISIBLE_DEVICES=0 \
 BENCHMARK_PYTHON="$PWD/.venv-libero/bin/python" \
 CONFIG=/path/to/libero.yaml \
-bash examples/embodied/vlda/eval/run_libero_eval.sh
+bash cookbook/embodied/vlda/eval/run_libero_eval.sh
 ```
 
 ## Code layout
