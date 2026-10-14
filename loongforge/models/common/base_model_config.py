@@ -44,8 +44,12 @@ class BaseModelConfig(TransformerConfig, PretrainedConfig):
     When left at 0 (default), auto-computed from ``args.seq_length * args.micro_batch_size``."""
 
     def __post_init__(self, **kwargs):
-        # transformers >= 5.6 moves PretrainedConfig setup to __post_init__.
-        PretrainedConfig.__post_init__(self, **kwargs)
+        # transformers >= 5.6 moves PretrainedConfig setup to __post_init__;
+        # older versions (<= 4.x) still do it in __init__.
+        if hasattr(PretrainedConfig, "__post_init__"):
+            PretrainedConfig.__post_init__(self, **kwargs)
+        else:
+            PretrainedConfig.__init__(self, **kwargs)
         TransformerConfig.__post_init__(self)
 
 
@@ -65,7 +69,10 @@ class BaseModelMLAConfig(MLATransformerConfig, PretrainedConfig):
     fp8_dynamic_num_tokens: int = 0
 
     def __post_init__(self, **kwargs):
-        PretrainedConfig.__post_init__(self, **kwargs)
+        if hasattr(PretrainedConfig, "__post_init__"):
+            PretrainedConfig.__post_init__(self, **kwargs)
+        else:
+            PretrainedConfig.__init__(self, **kwargs)
         MLATransformerConfig.__post_init__(self)
 
 
