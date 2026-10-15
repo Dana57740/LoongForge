@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 8-GPU VLDA LIBERO Stage 1 launcher for LoongForge.
-#   global batch 48 (6 per GPU), 10k steps, 500 warmup, save every 1k,
-#   peak LR 5e-5, cosine decay to 1e-5, gradient checkpointing enabled.
+#   global batch 96 (12 per GPU), 10k steps, 500 warmup, save every 1k,
+#   peak LR 7e-5, cosine decay to 3e-6, gradient checkpointing enabled.
 # Stage 1 freezes PaliGemma and the action expert and trains the world model only.
 set -euo pipefail
 
@@ -14,14 +14,14 @@ export GPUS_PER_NODE=${GPUS_PER_NODE:-8}
 export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}
 
 # 8-GPU training recipe.
-export GLOBAL_BATCH_SIZE=${GLOBAL_BATCH_SIZE:-48}
+export GLOBAL_BATCH_SIZE=${GLOBAL_BATCH_SIZE:-96}
 export GRADIENT_ACCUMULATION_STEPS=${GRADIENT_ACCUMULATION_STEPS:-1}
 export ZERO_OPTIMIZER=${ZERO_OPTIMIZER:-0}
 export TRAIN_ITERS=${TRAIN_ITERS:-10000}
 export WARMUP_ITERS=${WARMUP_ITERS:-500}
 export SAVE_INTERVAL=${SAVE_INTERVAL:-1000}
-export PEAK_LR=${PEAK_LR:-5e-5}
-export MIN_LR=${MIN_LR:-1e-5}
+export PEAK_LR=${PEAK_LR:-7e-5}
+export MIN_LR=${MIN_LR:-3e-6}
 export LOG_INTERVAL=${LOG_INTERVAL:-100}
 
 # Data / model assets (override as needed).

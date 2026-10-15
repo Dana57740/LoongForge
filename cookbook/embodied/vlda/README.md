@@ -191,12 +191,12 @@ activations during backward; it does not change that batch calculation.
 | Parameter | Stage 1 | Stage 2 |
 | --- | --- | --- |
 | Initialization | π₀.₅ base + V-JEPA 2 | Stage 1 checkpoint |
-| Global batch / batch per GPU | 48 / 6 | 128 / 16 |
+| Global batch / batch per GPU | 96 / 12 | 128 / 16 |
 | Optimizer updates | 10,000 | 60,000 |
 | Warmup updates | 500 | 10,000 |
-| Peak LR | `5e-5` | `5e-5` |
+| Peak LR | `7e-5` | `5e-5` |
 | Start cosine decay | After warmup | Step 40,000 |
-| Final LR | `1e-5` | `1e-5` |
+| Final LR | `3e-6` | `1e-5` |
 | Save interval | 1,000 | 5,000 |
 | Gradient checkpointing | Enabled | Enabled |
 | Teacher EMA momentum | `0.9985005625` | `0.9985005625` |
@@ -311,7 +311,8 @@ uv pip install --python .venv-libero/bin/python \
     gym==0.25.2 opencv-python==4.6.0.66 \
     imageio==2.35.1 imageio-ffmpeg==0.5.1 \
     websockets==13.1 msgpack==1.1.1 PyYAML==6.0.3 \
-    bddl==1.0.1 easydict==1.9 cloudpickle==2.1.0 matplotlib==3.5.3 future==0.18.2
+    bddl==1.0.1 easydict==1.9 cloudpickle==2.1.0 matplotlib==3.5.3 future==0.18.2 \
+    termcolor==2.5.0
 uv pip install --python .venv-libero/bin/python --no-deps -e third_party/LIBERO
 ```
 
@@ -325,6 +326,13 @@ An existing working LIBERO environment can be reused by setting
 `BENCHMARK_PYTHON=/path/to/libero/.venv/bin/python` and
 `LIBERO_ROOT=/path/to/LIBERO`. Set the model server's Python environment
 separately with `server.python` in the YAML.
+
+For Python 3.11, use `matplotlib==3.7.5` in place of `matplotlib==3.5.3`.
+The simulator client can use CPU-only PyTorch; the model server uses the
+training environment's CUDA-enabled PyTorch. If a container includes another
+Python environment's `torch/lib` in `LD_LIBRARY_PATH`, remove that entry before
+starting evaluation so the client loads its own PyTorch libraries. Preserve
+any required CUDA and graphics library paths.
 
 ### Run evaluation
 
