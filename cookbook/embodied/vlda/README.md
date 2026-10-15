@@ -1,18 +1,19 @@
-# VLDA
+# LoongForge-VLDA
 
 **Paper:** _Paper title and authors to be added._  
 **arXiv:** <!-- Add the paper URL here. -->
 
-VLDA extends π₀.₅ with latent world modeling and world-conditioned action
-prediction. It uses V-JEPA 2 visual representations to learn latent changes
-and future features, then jointly trains the action policy with an auxiliary
-alignment objective. This implementation provides two-stage LIBERO training
-and evaluation on [LoongForge](../../../README.md).
+LoongForge-VLDA is LoongForge's implementation of VLDA. It extends π₀.₅ with
+latent world modeling and world-conditioned action prediction. It uses V-JEPA
+2 visual representations to learn latent changes and future features, then
+jointly trains the action policy with an auxiliary alignment objective. This
+implementation provides two-stage LIBERO training and evaluation on
+[LoongForge](../../../README.md).
 
 ## Framework
 
 <!-- Add the framework figure here, for example:
-![VLDA framework](assets/framework.png)
+![LoongForge-VLDA framework](assets/framework.png)
 -->
 
 _Framework figure to be added._
@@ -36,14 +37,15 @@ LoongForge/
 ```
 
 Training asset paths can be overridden through the environment variables shown
-below; evaluation paths are set in the YAML. VLDA training and inference use
-code in this repository; they do not require a separate VLDA checkout or
-patched Transformers installation.
+below; evaluation paths are set in the YAML. LoongForge-VLDA training and
+inference use code in this repository; they do not require a separate VLDA
+checkout or patched Transformers installation.
 
 ## 1. Training environment
 
 First follow the [LoongForge installation guide](../../../docs/source/get_started/installation.md).
-Use a dedicated **Python 3.12** environment for this VLDA recipe. The version
+Use a dedicated **Python 3.12** environment for this LoongForge-VLDA recipe.
+The version
 combination used by the training runs is:
 
 | Component | Version |
@@ -54,9 +56,9 @@ combination used by the training runs is:
 | Transformers | 5.3.0 |
 | torchdata / torchcodec | 0.11.0 / 0.7.0 |
 
-After the base LoongForge installation, install the VLDA dependencies into
-that environment. The explicit PyTorch pins keep the supplemental install
-on the same version:
+After the base LoongForge installation, install the LoongForge-VLDA
+dependencies into that environment. The explicit PyTorch pins keep the
+supplemental install on the same version:
 
 ```bash
 uv pip install --python .venv/bin/python \

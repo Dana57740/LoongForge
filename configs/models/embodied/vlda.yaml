@@ -1,4 +1,4 @@
-# VLDA LIBERO baseline. Stage 2 is a separate run initialized from Stage 1.
+# LoongForge-VLDA LIBERO baseline. Stage 2 is a separate run initialized from Stage 1.
 model:
   model_type: vlda
   stage: 1

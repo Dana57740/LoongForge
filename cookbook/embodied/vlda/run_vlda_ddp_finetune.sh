@@ -2,7 +2,7 @@
 # Copyright 2026 The LoongForge Authors.
 # SPDX-License-Identifier: Apache-2.0
 
-# VLDA LIBERO two-stage baseline. Run each stage as a separate torchrun job.
+# LoongForge-VLDA LIBERO two-stage baseline. Run each stage as a separate torchrun job.
 # STAGE=1 CHECKPOINT_PATH=<pi05-base> VJEPA_CHECKPOINT=<vitg.pt> bash ...
 # STAGE=2 CHECKPOINT_PATH=<stage1-checkpoint> bash ...
 # RESUME=1 STAGE=2 OUTPUT_DIR=<existing-stage2-run> bash ...
@@ -23,7 +23,7 @@ SEED=${SEED:-42}
 export PYTHONHASHSEED="$SEED"
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 
-: "${DATA_PATH:?Set DATA_PATH to the VLDA LeRobot v2 dataset}"
+: "${DATA_PATH:?Set DATA_PATH to the LoongForge-VLDA LeRobot v2 dataset}"
 : "${TOKENIZER_PATH:?Set TOKENIZER_PATH to paligemma_tokenizer.model}"
 NORM_STATS_PATH=${NORM_STATS_PATH:-"$DATA_PATH/norm_stats.json"}
 PREPROCESSING_BACKEND=${PREPROCESSING_BACKEND:-native}

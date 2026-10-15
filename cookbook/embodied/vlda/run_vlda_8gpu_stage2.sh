@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 8-GPU VLDA LIBERO Stage 2 launcher for LoongForge.
+# 8-GPU LoongForge-VLDA LIBERO Stage 2 launcher.
 #   global batch 128 (16 per GPU), 60k steps, save every 5k,
 #   warm up to 5e-5 over 10k steps, hold through 40k, cosine decay to 1e-5
 #   over the final 20k steps, gradient checkpointing enabled.
