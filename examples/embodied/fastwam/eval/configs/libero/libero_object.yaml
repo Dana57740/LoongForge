@@ -19,7 +19,10 @@
 #   prefer_controller_ee: false) are the official eval settings; changing
 #   either costs tens of points. Official FastWAM reads obs['robot0_eef_pos'],
 #   not the OSC controller pose.
-# - action_infer_mode first_frame: 10 flow-matching steps, sigma_shift 5.0 (official passes null -> infer_shift),
+# - controller_force_update: false matches the official eval (the runner default
+#   is the legacy LoongForge behaviour other models still use; measurement in
+#   the FastWAM repro report).
+# - action_infer_mode first_frame: 10 flow-matching steps, sigma_shift 1.0 (official passes null -> action scheduler infer_shift = 1.0; the video scheduler stays 5.0),
 #   32-action chunk with 10 steps executed open-loop per replan (official
 #   replan cadence, applied server-side via chunk_execute_steps=0->10).
 # - 2 cams: agentview + wrist at env-native resolution; cover-style resize +
@@ -51,6 +54,8 @@ benchmark:
   max_steps: 0          # 0 = suite default (official per-suite horizon)
   num_steps_wait: 30  # official eval settles the scene before the first replan
   continuous_gripper: false  # official binarize_gripper: true (model >0.5 -> open)
+  prefer_controller_ee: false      # official reads obs['robot0_eef_pos'], not the OSC cache
+  controller_force_update: false   # official does not force the OSC cache refresh
 
 model:
   backend: loongforge
@@ -69,7 +74,7 @@ model:
   # Eval protocol (consumed by FastWAMPolicy.set_eval_protocol).
   action_infer_mode: first_frame
   num_inference_steps: 10
-  sigma_shift: 5.0
+  sigma_shift: 1.0
   num_video_frames: 9   # IDM mode only
   model_id: Wan-AI/Wan2.2-TI2V-5B
   tokenizer_model_id: /path/to/Wan2.2-TI2V-5B
