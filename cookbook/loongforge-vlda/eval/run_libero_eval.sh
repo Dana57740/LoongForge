@@ -8,7 +8,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 CONFIG=${CONFIG:-$SCRIPT_DIR/configs/libero/libero.yaml}
 if [[ "$CONFIG" != /* ]]; then
     CONFIG="$REPO_ROOT/$CONFIG"

@@ -8,7 +8,7 @@ latent world modeling and world-conditioned action prediction. It uses V-JEPA
 2 visual representations to learn latent changes and future features, then
 jointly trains the action policy with an auxiliary alignment objective. This
 implementation provides two-stage LIBERO training and evaluation on
-[LoongForge](../../../README.md).
+[LoongForge](../../README.md).
 
 ## Framework
 
@@ -27,6 +27,7 @@ layout is:
 LoongForge/
 ├── .venv/                              # Training and model server
 ├── .venv-libero/                       # LIBERO simulator and evaluation client
+├── cookbook/loongforge-vlda/            # Training and evaluation launchers
 ├── datasets/libero/                    # LeRobot v2 dataset and norm_stats.json
 ├── models/
 │   ├── pi05_base_pytorch/model.safetensors
@@ -43,7 +44,7 @@ checkout or patched Transformers installation.
 
 ## 1. Training environment
 
-First follow the [LoongForge installation guide](../../../docs/source/get_started/installation.md).
+First follow the [LoongForge installation guide](../../docs/source/get_started/installation.md).
 Use a dedicated **Python 3.12** environment for this LoongForge-VLDA recipe.
 The version
 combination used by the training runs is:
@@ -229,7 +230,7 @@ CHECKPOINT_PATH="$PWD/models/pi05_base_pytorch" \
 VJEPA_CHECKPOINT="$PWD/models/vjepa2/vitg.pt" \
 OUTPUT_DIR="$PWD/outputs/vlda/libero_stage1" \
 RESUME=0 \
-bash cookbook/embodied/vlda/run_vlda_8gpu_stage1.sh
+bash cookbook/loongforge-vlda/run_vlda_8gpu_stage1.sh
 ```
 
 ### Stage 2: world-conditioned action learning
@@ -247,7 +248,7 @@ TOKENIZER_PATH="$PWD/models/paligemma_tokenizer.model" \
 CHECKPOINT_PATH="$INIT_CHECKPOINT" \
 OUTPUT_DIR="$PWD/outputs/vlda/libero_stage2" \
 RESUME=0 \
-bash cookbook/embodied/vlda/run_vlda_8gpu_stage2.sh
+bash cookbook/loongforge-vlda/run_vlda_8gpu_stage2.sh
 ```
 
 Use `GPUS_PER_NODE` and `CUDA_VISIBLE_DEVICES` together when changing the
@@ -282,7 +283,7 @@ DATA_PATH="$PWD/datasets/libero" \
 TOKENIZER_PATH="$PWD/models/paligemma_tokenizer.model" \
 OUTPUT_DIR="$PWD/outputs/vlda/libero_stage2" \
 RESUME=1 \
-bash cookbook/embodied/vlda/run_vlda_8gpu_stage2.sh
+bash cookbook/loongforge-vlda/run_vlda_8gpu_stage2.sh
 ```
 
 Resume restores the saved training state and statistics. To start a new run
@@ -294,7 +295,7 @@ resume configuration for earlier constant-LR runs.
 ## 5. Evaluate on LIBERO
 
 Evaluation uses LoongForge's shared **policy server + LIBERO client**,
-following the [pi05 LIBERO evaluation guide](../../../docs/source/embodied_tutorial/eval_docs/benchmarks/libero.md).
+following the [pi05 LIBERO evaluation guide](../../docs/source/embodied_tutorial/eval_docs/benchmarks/libero.md).
 The [launch script](eval/run_libero_eval.sh) starts and stops the server
 automatically; one terminal is sufficient.
 
@@ -302,7 +303,7 @@ automatically; one terminal is sufficient.
 
 Keep the simulator in a separate environment from training. The recipe
 below uses Python 3.10 with the package versions recorded in
-[LoongForge's benchmark environments](../../../docs/source/embodied_tutorial/eval_docs/benchmark_envs.md#libero):
+[LoongForge's benchmark environments](../../docs/source/embodied_tutorial/eval_docs/benchmark_envs.md#libero):
 
 ```bash
 uv venv --python 3.10 .venv-libero
@@ -357,7 +358,7 @@ Then run:
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
 BENCHMARK_PYTHON="$PWD/.venv-libero/bin/python" \
-bash cookbook/embodied/vlda/eval/run_libero_eval.sh
+bash cookbook/loongforge-vlda/eval/run_libero_eval.sh
 ```
 
 By default this runs `libero_spatial`, `libero_object`, `libero_10`, and
@@ -375,7 +376,7 @@ different configuration:
 CUDA_VISIBLE_DEVICES=0 \
 BENCHMARK_PYTHON="$PWD/.venv-libero/bin/python" \
 CONFIG=/path/to/libero.yaml \
-bash cookbook/embodied/vlda/eval/run_libero_eval.sh
+bash cookbook/loongforge-vlda/eval/run_libero_eval.sh
 ```
 
 ## Code layout
@@ -383,21 +384,21 @@ bash cookbook/embodied/vlda/eval/run_libero_eval.sh
 | Component | Location |
 | --- | --- |
 | Training launchers | [Stage 1](run_vlda_8gpu_stage1.sh), [Stage 2](run_vlda_8gpu_stage2.sh) |
-| Model and loss definitions | [modeling_vlda.py](../../../loongforge/embodied/model/vlda/modeling_vlda.py) |
-| Model configuration | [vlda.yaml](../../../configs/models/embodied/vlda.yaml) |
-| Dataset and transforms | [vlda/](../../../loongforge/embodied/data/datasets/vlda/) |
-| Teacher EMA and checkpoint integration | [vlda_finetune_trainer.py](../../../loongforge/embodied/train/trainers/custom/vlda/vlda_finetune_trainer.py) |
+| Model and loss definitions | [modeling_vlda.py](../../loongforge/embodied/model/vlda/modeling_vlda.py) |
+| Model configuration | [vlda.yaml](../../configs/models/embodied/vlda.yaml) |
+| Dataset and transforms | [vlda/](../../loongforge/embodied/data/datasets/vlda/) |
+| Teacher EMA and checkpoint integration | [vlda_finetune_trainer.py](../../loongforge/embodied/train/trainers/custom/vlda/vlda_finetune_trainer.py) |
 | Evaluation entry | [run_libero_eval.sh](eval/run_libero_eval.sh) |
 
 ## V-JEPA 2
 
 VLDA uses part of [V-JEPA 2](https://github.com/facebookresearch/vjepa2)'s
 encoder code with minor integration changes. The original
-[MIT license](../../../loongforge/embodied/model/vlda/vjepa2/LICENSE) is included.
+[MIT license](../../loongforge/embodied/model/vlda/vjepa2/LICENSE) is included.
 
 ## Acknowledgements
 
-This implementation builds on [LoongForge](../../../README.md),
+This implementation builds on [LoongForge](../../README.md),
 [OpenPI](https://github.com/Physical-Intelligence/openpi),
 [V-JEPA 2](https://github.com/facebookresearch/vjepa2), and
 [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO).

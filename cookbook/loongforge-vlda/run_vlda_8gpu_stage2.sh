@@ -8,7 +8,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export LOONGFORGE_PATH="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+export LOONGFORGE_PATH="$(cd "$SCRIPT_DIR/../.." && pwd)"
 export PATH="$LOONGFORGE_PATH/.venv/bin:$PATH"
 
 export STAGE=2
