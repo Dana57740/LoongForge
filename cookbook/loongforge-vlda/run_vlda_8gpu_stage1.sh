@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 The LoongForge Authors.
+# SPDX-License-Identifier: Apache-2.0
+#
 # 8-GPU LoongForge-VLDA LIBERO Stage 1 launcher.
 #   global batch 96 (12 per GPU), 10k steps, 500 warmup, save every 1k,
 #   peak LR 7e-5, cosine decay to 3e-6, gradient checkpointing enabled.
