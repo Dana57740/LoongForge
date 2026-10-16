@@ -61,7 +61,6 @@ MODEL_SCHEMA = {
     ),
     "pi05": ModelSchema("pi05.yaml", Pi05ModelConfig, Pi05DataConfig),
     "vlda": ModelSchema("vlda.yaml", VLDAModelConfig, VLDADataConfig),
-    "vlda_robotwin": ModelSchema("vlda_robotwin.yaml", VLDAModelConfig, VLDADataConfig),
     "groot_n1_6": ModelSchema("groot_n1_6.yaml", GrootN1d6ModelConfig, GrootN1d6DataConfig),
     "xvla": ModelSchema("xvla.yaml", XvlaModelConfig, XvlaDataConfig),
     "fastwam": ModelSchema("fastwam.yaml", FastWAMModelConfig, FastWAMDataConfig),
