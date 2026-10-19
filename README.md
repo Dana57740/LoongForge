@@ -13,9 +13,9 @@
 <h3 align="center">Train LLMs, VLMs, diffusion, and embodied models — faster.</h3>
 
 <p align="center">
-  <a href="https://loongforge.readthedocs.io/en/latest/index.html"><b>Docs &#8599;&#xFE0E;</b></a>
+  <a href="https://loongforge.readthedocs.io/en/latest/index.html"><b>Docs</b></a>
   &nbsp;·&nbsp;
-  <a href="https://baidu-baige.github.io/LoongForge/blog/"><b>Blog &#8599;&#xFE0E;</b></a>
+  <a href="https://baidu-baige.github.io/LoongForge/blog/"><b>Blog</b></a>
   &nbsp;·&nbsp;
   <a href="#performance"><b>Performance</b></a>
   &nbsp;·&nbsp;
@@ -50,13 +50,13 @@
 
 **LoongForge** is an open-source training framework developed by the [Baidu AI Cloud Baige team](https://cloud.baidu.com/product/aihc.html), built to deliver faster training for mainstream **LLMs, VLMs, diffusion, and embodied models**.
 
-- **High Performance** — Built on a multi-backend architecture (Megatron-LM and torch-native), with [deep training-speed](#performance) optimizations that keep **training loss aligned with the baseline**.
-- **Easy to Use** — Covers 40+ mainstream open-source [models](#models), each with ready-to-run configs and launch examples. Ships with supporting tools such as checkpoint conversion and data preprocessing, and supports **pre-training**, **continued pre-training**, **SFT**, and **LoRA**.
-- **Production-Proven** — Open-sourced from [AIAK-Training-LLM](https://cloud.baidu.com/doc/AIHC/s/Alyo476jr), a training suite that serves enterprise customers' proprietary models and also powers some [awesome projects](#powered-by-loongforge), with its largest validated scale for large-model training reaching **5,000+ XPUs**.
+- **High Performance** — Built on Megatron-LM and torch-native backends, with deep optimizations for [training speed](#performance) that keep **training loss aligned with the baseline**.
+- **Easy to Use** — Ready-to-run configs and launch scripts for 40+ open-source [models](#models), plus checkpoint conversion and data preprocessing tools. Supports **pre-training**, **mid-training**, **SFT**, and **LoRA**.
+- **Production-Proven** — Open-sourced from [AIAK-Training-LLM](https://cloud.baidu.com/doc/AIHC/s/Alyo476jr), which powers enterprise customers' proprietary models and several [open-source projects](#powered-by-loongforge). Production runs reach **5,000+ XPUs**.
 
 ---
 
-**Example:** training the embodied model DreamZero (full fine-tuning of Wan2.2-5B) on LoongForge reaches 4.38× the open-source baseline's throughput, with loss curves staying aligned
+**Example:** training the embodied model DreamZero on LoongForge reaches 4.38× the open-source baseline's throughput, with loss curves staying aligned
 
 <p align="center">
   <a href="https://baidu-baige.github.io/LoongForge/assets/video/dreamzero-comparison.mp4">
@@ -72,7 +72,7 @@
 <a id="architecture"></a>
 ## 🏗️ Architecture
 
-Different model families and scales call for different training strategies, so LoongForge adopts a multi-backend architecture.
+Since optimal training strategies differ across model families and scales, LoongForge adopts a multi-backend architecture.
 
 <p align="center">
   <picture>
@@ -97,13 +97,13 @@ Different model families and scales call for different training strategies, so L
 - **[2026/08]** ✨ Added training support for **GLM-5.2**, along with a **[GLM-5.2 + MoonViT](./configs/models/glm5.2_vit/)** custom-composition [example](./examples/glm5.2_vit/) for extending GLM with multimodal capabilities.
 - **[2026/08]** ✨ Added training support for **MiniCPM-V-4.6** and **Qwen3.8-27B**.
 - **[2026/08]** 🧪 Introduced a unified [**evaluation module**](./loongforge/embodied/eval/) for the embodied stack, currently covering **Pi0.5 / xVLA / GR00T**, with more models on the way.
-- **[2026/07]** 🐳 Unified the **prebuilt Docker images** — all model families (LLM / VLM / Embodied / Diffusion) now share a single image.
-- **[2026/07]** 🤖 Released **[LoongForge-Embodied](./loongforge/embodied)**, a torch-native DDP/FSDP training subsystem for embodied models (Pi0.5, GR00T-N1.6/N1.7, xVLA, LingBot-VA, FastWAM, DreamZero, and Cosmos3), with up to **4.38× speedup**.
-- **[2026/07]** ✨ Added training support for **DeepSeek-V4-Flash / DeepSeek-V4-Pro**.
 
 <details>
 <summary><b>📅 More</b></summary>
 
+- **[2026/07]** 🐳 Unified the **prebuilt Docker images** — all model families (LLM / VLM / Embodied / Diffusion) now share a single image.
+- **[2026/07]** 🤖 Released **[LoongForge-Embodied](./loongforge/embodied)**, a torch-native DDP/FSDP training subsystem for embodied models (Pi0.5, GR00T-N1.6/N1.7, xVLA, LingBot-VA, FastWAM, DreamZero, and Cosmos3), with up to **4.38× speedup**.
+- **[2026/07]** ✨ Added training support for **DeepSeek-V4-Flash / DeepSeek-V4-Pro**.
 - **[2026/07]** ✨ Added training support for **Qwen-Image-Edit-2511**.
 - **[2026/06]** 🤖 Expanded VLA coverage with **GR00T N1.6**; **2.3× speedup** on GR00T training. [[blog](https://baidu-baige.github.io/LoongForge/blog/2026-06-loongforge-groot-n16-acceleration.html)]
 - **[2026/05]** ⚡ Accelerated **Wan 2.2** training by **116%**, and added CP and data packing support.
