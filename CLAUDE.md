@@ -229,7 +229,7 @@ Megatron-LM is managed as a git submodule (`third_party/Loong-Megatron` → `bai
 
 ## Patches
 
-`patches/TransformerEngine_v2.9/` contains patch files applied to upstream TransformerEngine during setup. These implement LoongForge-specific optimizations and fixes.
+`third_party/patches/TransformerEngine_v2.9/` contains patch files applied to upstream TransformerEngine during setup. These implement LoongForge-specific optimizations and fixes.
 
 ## Code Review
 

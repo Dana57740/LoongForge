@@ -322,13 +322,14 @@ LoongForge/
 │   ├── data/                     # Data loading and processing pipelines
 │   ├── tokenizer/                # Tokenizers
 │   └── utils/                    # Config registry, constants and shared helpers
-├── third_party/Loong-Megatron/   # Patched Megatron-LM (git submodule)
+├── third_party/                  # Third-party dependencies and patches
+│   ├── Loong-Megatron/            # Patched Megatron-LM (git submodule)
+│   └── patches/                  # TransformerEngine patches
 ├── configs/                      # Hydra YAML configs (models, data)
 ├── examples/                     # Launch scripts for NVIDIA GPUs
 ├── examples_xpu/                 # Launch scripts for Kunlun XPUs
 ├── tools/                        # Standalone dev tools: checkpoint conversion, data preprocessing, etc. (see tools/README.md)
 ├── ops/                          # Custom fused operators (incl. open-sourced TileLang)
-├── patches/                      # TransformerEngine patches
 ├── docker/                       # Dockerfiles (GPU & XPU)
 ├── tests/                        # Test suites (E2E, regression, unit)
 └── docs/                         # Documentation

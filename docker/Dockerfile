@@ -230,9 +230,9 @@ RUN --mount=type=secret,id=source_manifest,required=false \
             git checkout -b "loongforge_${TE_TAGS}"; \
         fi && \
         git restore . && \
-        if [ -f "/workspace/LoongForge/patches/apply_patches.sh" ]; then \
-            NON_INTERACTIVE=true bash /workspace/LoongForge/patches/apply_patches.sh \
-                /workspace/LoongForge/patches/TransformerEngine_${TE_TAGS} \
+        if [ -f "/workspace/LoongForge/third_party/patches/apply_patches.sh" ]; then \
+            NON_INTERACTIVE=true bash /workspace/LoongForge/third_party/patches/apply_patches.sh \
+                /workspace/LoongForge/third_party/patches/TransformerEngine_${TE_TAGS} \
                 ${transformerEngine_dir}; \
         fi && \
         if [ "${source_mode}" = public ]; then git submodule update --init --recursive; fi && \
