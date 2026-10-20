@@ -285,6 +285,7 @@ Click any model for its training examples; see [`configs/models/`](./configs/mod
 <li><a href="examples/embodied/lingbot_va/">LingBot-VA</a></li>
 <li><a href="examples/embodied/cosmos3/">Cosmos3</a></li>
 <li><a href="examples/embodied/dreamzero/">DreamZero</a></li>
+<li><a href="cookbook/loongforge-vlda/">LoongForge-VLDA</a></li>
 </ul>
 </td>
 <td valign="top">
@@ -354,7 +355,7 @@ See more on the [Projects page](https://baidu-baige.github.io/LoongForge/project
 
 ### From the LoongForge Team
 
-- [**LoongForge-VLDA**](./cookbook/loongforge-vlda/) — Vision-Language-Delta-Action model for robotic manipulation: **98.5%** on LIBERO, **84.5%** zero-shot on LIBERO-Plus, and **17–18 points** ahead of π₀.₅ on real robots. [[project page](https://baidu-baige.github.io/LoongForge/projects/vlda.html)] [[paper](https://arxiv.org/abs/2610.25874)]
+- [**LoongForge-VLDA**](https://baidu-baige.github.io/LoongForge/projects/vlda.html) — Vision-Language-Delta-Action model for robotic manipulation: **98.5%** on LIBERO, **84.5%** zero-shot on LIBERO-Plus, and **17–18 points** ahead of π₀.₅ on real robots.
 
 https://github.com/user-attachments/assets/8563afca-f79a-4a45-bb4f-36e06c0ccbcb
 
