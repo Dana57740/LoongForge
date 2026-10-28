@@ -46,7 +46,7 @@ Training speedups over mainstream open-source baselines. Performance is still un
 | Model | Type | Speedup |
 |---|---|---|
 | DreamZero (DROID Wan2.2-5B Full) | WAM | **4.38×** |
-| Pi0.5 | VLA | **2.80×** |
+| Pi0.5 | VLA | **3.00×** |
 | FastWAM | WAM | **2.61×** |
 | GR00T-N1.6 | VLA | **2.31×** |
 | LingBot-VA | WAM | **2.20×** |
