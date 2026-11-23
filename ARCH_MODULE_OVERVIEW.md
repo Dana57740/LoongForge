@@ -309,7 +309,7 @@ frame/chunk 标签由 layout 统一提供。`mask.py` 还区分 structural mask
 ```mermaid
 flowchart TD
     A[batch]
-    B[1. sample_timesteps]
+    B[1. draw]
     C[2. build_conditions]
     D[3. add_noise]
     E[4. stream_inputs]
@@ -321,10 +321,12 @@ flowchart TD
     A --> B --> C --> D --> E --> F --> G --> H --> I
 ```
 
-### 第一步：采样 timestep
+### 第一步：抽取噪声和 timestep
 
-`sample_timesteps()` 遍历需要 diffusion timestep 的 stream，并调用对应
-`TimestepSampler`。axis size 来自：
+`draw()` 按 `DiffusionSpec.timesteps` 的键序逐条流抽取 ε 和 timestep，流内谁先谁后由
+`TimestepSampler.rng`（`RngPolicy.order`）决定；timestep 按 float32 抽，再由
+`RngPolicy.quantize` 换成加噪用的 σ 和训练时间步 `σ × num_train_timesteps`。
+`add_noise()` 只消费这次抽取，自己不抽随机数。axis size 来自：
 
 ```python
 self.layout.labels_of(axis).max() + 1
@@ -344,11 +346,11 @@ namespace 保存在 `WorldModel.condition_encoders` 中。
 
 ### 第三步：加噪和生成 target
 
-默认 `add_noise()` 对 raw tensor 计算：
+默认 `add_noise()` 对 raw tensor 计算（`sigma`、`eps` 都来自第一步的抽取）：
 
 ```python
-x_t = schedule.add_noise(x_0, eps, t)
-target = schedule.target(x_0, eps, t)
+x_t = schedule.add_noise(x_0, eps, sigma)
+target = schedule.target(x_0, eps, sigma)
 ```
 
 视频 raw tensor 形状通常类似 `[B, C, F, H, W]`，动作 raw tensor 类似

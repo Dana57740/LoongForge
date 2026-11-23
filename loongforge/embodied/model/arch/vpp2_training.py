@@ -6,115 +6,36 @@
 The wrapper owns VAE/CLIP/text encoding and channel-concat conditioning. In
 particular, zero-padded clean video latents are only a shape template for noise;
 Libero does NOT replace the first noisy latent with a clean latent by default.
-Runtime diffusion coordinates remain normalized. Only ``run_group`` converts
-them to WAN's 1000-step embedding domain; no stream-side adapter is required.
+The draw order, the 1000-step training timestep, the bsmntw weight and the
+per-token action reduction are L3/L4 declarations of the VPP2 provider
+(``RngPolicy``, ``RectifiedFlow(num_train_timesteps=1000)``, ``Bsmntw``,
+``TokenMeanSquaredError``); the generic ``WorldModel`` executes them. This
+recipe adds only VPP2's own policies: the frozen pure-noise video stream, the
+terminal-padding exception and the optional first-frame fusion.
 """
 
 from __future__ import annotations
 
 from copy import copy
-from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 import torch
 from torch import Tensor
-from torch.nn import functional as F
 
-from .builder import DiffusionRuntime, WorldModel
-from .diffusion.timesteps import UniformShift
+from .builder import DiffusionDraw, DiffusionRuntime, WorldModel
+from .diffusion.loss import Bsmntw, TokenMeanSquaredError
+from .diffusion.timesteps import RngPolicy, UniformShift
 from .layout import TokenLayout
 from .spec.world import WorldModelSpec
 from .streams.conditions import ConditionBus
-from .streams.engine import AttentionGroup, EngineOutput, JointAttentionEngine, StreamEngine
+from .streams.engine import EngineOutput, JointAttentionEngine, StreamEngine
 
-__all__ = ["VPP2TrainingWorldModel", "VPP2DiffusionRuntime",
-           "VPP2ActionScheduler", "masked_action_loss"]
+__all__ = ["VPP2TrainingWorldModel"]
 
-
-class VPP2ActionScheduler:
-    """Master's continuous shifted-uniform scheduler, in the WAN input domain.
-
-    Keep sampling in fp32, cast AFTER multiplying by 1000, and compute weight
-    statistics on the descending, endpoint-excluding fp64 grid. These details
-    matter for master parity, especially when actions are bf16.
-    """
-
-    num_train_timesteps = 1000
-
-    def __init__(self, shift: float = 5.0) -> None:
-        if not 0 < shift < float("inf"):
-            raise ValueError("action shift must be finite and positive")
-        self.shift = float(shift)
-        self.eps = 1e-10
-        steps = self.num_train_timesteps
-        u = torch.linspace(1.0, 0.0, steps + 1, dtype=torch.float64)[:-1]
-        t = self._phi(u) * float(steps)
-        y = torch.exp(-2.0 * ((t - steps / 2.0) / steps) ** 2)
-        self._y_min = float(y.min().item())
-        self._weight_norm_const = float((y - self._y_min).mean().item())
-
-    def _phi(self, u: Tensor) -> Tensor:
-        return self.shift * u / (1.0 + (self.shift - 1.0) * u)
-
-    def sample_training_t(self, batch_size: int, device: torch.device,
-                          dtype: torch.dtype) -> Tensor:
-        if batch_size <= 0:
-            raise ValueError("batch_size must be positive")
-        u = torch.rand((batch_size,), device=device, dtype=torch.float32)
-        return (self._phi(u) * float(self.num_train_timesteps)).to(dtype=dtype)
-
-    def training_weight(self, timestep: Tensor) -> Tensor:
-        t = timestep.to(dtype=torch.float32)
-        steps = float(self.num_train_timesteps)
-        y = torch.exp(-2.0 * ((t - steps / 2.0) / steps) ** 2)
-        weight = (y - self._y_min) / (self._weight_norm_const + self.eps)
-        return weight.reshape(()) if weight.numel() == 1 else weight
-
-    def add_noise(self, sample: Tensor, noise: Tensor, timestep: Tensor) -> Tensor:
-        sigma = (timestep / float(self.num_train_timesteps)).to(
-            device=sample.device, dtype=sample.dtype)
-        if sigma.ndim:
-            sigma = sigma.view(-1, *([1] * (sample.ndim - 1)))
-        return (1 - sigma) * sample + sigma * noise
-
-    @staticmethod
-    def training_target(sample: Tensor, noise: Tensor, timestep: Tensor) -> Tensor:
-        del timestep
-        return noise - sample
-
-
-def masked_action_loss(prediction: Tensor, target: Tensor,
-                       training_weight: Tensor,
-                       action_is_pad: Tensor | None = None) -> Tensor:
-    """fp32 dimension MSE, per-sample valid-token mean, then weighted batch mean."""
-    if prediction.ndim != 3 or prediction.shape != target.shape:
-        raise ValueError("action prediction and target must match [B,T,D]")
-    if not all(prediction.shape):
-        raise ValueError("action prediction dimensions must be nonempty")
-    if training_weight.numel() not in (1, prediction.shape[0]):
-        raise ValueError("training_weight must be scalar or have one value per sample")
-    token_loss = F.mse_loss(prediction.float(), target.float(),
-                           reduction="none").mean(dim=2)
-    if action_is_pad is None:
-        per_sample = token_loss.mean(dim=1)
-    else:
-        if action_is_pad.shape != prediction.shape[:2]:
-            raise ValueError("action_is_pad must match action [B,T]")
-        valid = (~action_is_pad.to(device=token_loss.device, dtype=torch.bool)).to(
-            dtype=token_loss.dtype)
-        per_sample = (token_loss * valid).sum(dim=1) / valid.sum(dim=1).clamp(min=1.0)
-    weight = training_weight.to(device=per_sample.device, dtype=per_sample.dtype)
-    return (per_sample * weight.reshape(-1)).mean()
-
-
-@dataclass
-class VPP2DiffusionRuntime(DiffusionRuntime):
-    """Raw padding is distinct from padding after terminal inclusion."""
-
-    action_is_pad: Tensor | None = None
-    action_loss_is_pad: Tensor | None = None
-    # Preserve the master dtype/rounding independently of normalized runtime t.
-    model_timesteps: dict[str, Tensor] = field(default_factory=dict)
+# Master ``LiberoActionModel.training_loss`` draws video noise, then (no draw)
+# the pure-noise video t, then action noise and the action t, and casts t to
+# the sample dtype before noising (``scheduler.py:sample_training_t``).
+_MASTER_RNG = RngPolicy(order="noise_first", sigma_dtype="like_sample")
 
 
 class VPP2TrainingWorldModel(WorldModel):
@@ -142,6 +63,14 @@ class VPP2TrainingWorldModel(WorldModel):
         sampler = spec.diffusion.sampler_for("action")
         if not isinstance(sampler.distribution, UniformShift) or not sampler.broadcast.is_per_sample:
             raise ValueError("VPP2 action training requires per-sample UniformShift")
+        # Master parity rests on these provider declarations; refuse to train a
+        # recipe whose numbers silently differ from master.
+        if list(spec.diffusion.timesteps) != ["video", "action"] or any(
+                spec.diffusion.sampler_for(name).rng != _MASTER_RNG for name in ("video", "action")):
+            raise ValueError("VPP2 action training draws video then action, noise first, "
+                             f"with t cast to the sample dtype ({_MASTER_RNG})")
+        if spec.diffusion.schedule.num_train_timesteps != 1000:
+            raise ValueError("VPP2 action training uses the 1000-step training timestep")
         if not isinstance(engine, JointAttentionEngine):
             raise TypeError("VPP2 action training requires JointAttentionEngine frozen_streams support")
         if "action" in engine.frozen_streams:
@@ -150,7 +79,6 @@ class VPP2TrainingWorldModel(WorldModel):
         recipe_engine.frozen_streams = engine.frozen_streams | frozenset({"video"})
         super().__init__(spec, engine=recipe_engine, layout=layout)
         self.training_stage = training_stage
-        self.action_scheduler = VPP2ActionScheduler(sampler.distribution.shift)
         self.blocks["video"].requires_grad_(False)
         for head in spec.heads:
             if head.source_stream == "video":
@@ -161,6 +89,9 @@ class VPP2TrainingWorldModel(WorldModel):
         action_losses = [loss for loss in spec.diffusion.losses if loss.head == "action_flow"]
         if len(action_losses) != 1:
             raise ValueError("VPP2 action training requires exactly one action_flow loss")
+        if (not isinstance(action_losses[0].objective, TokenMeanSquaredError)
+                or not isinstance(action_losses[0].weight_of, Bsmntw)):
+            raise ValueError("VPP2 action_flow loss is TokenMeanSquaredError weighted by Bsmntw")
         self._action_loss_spec = action_losses[0]
 
     def _latents(self, batch: Mapping[str, Any]) -> tuple[Tensor, Tensor]:
@@ -175,27 +106,19 @@ class VPP2TrainingWorldModel(WorldModel):
             raise ValueError("video and action dimensions must be nonempty")
         return video, action
 
-    def sample_timesteps(self, batch: Mapping[str, Any]) -> dict[str, Tensor]:
-        video, action = self._latents(batch)
-        t = self.action_scheduler.sample_training_t(action.shape[0], action.device, action.dtype)
-        # fp64 normalized coordinates preserve the already-cast master t exactly
-        # through the reversible input-scale boundary, including bf16 rounding.
-        return {"video": torch.ones(video.shape[0], device=video.device, dtype=torch.float64),
-                "action": t.to(torch.float64) / 1000.0}
-
     def build_conditions(self, batch: Mapping[str, Any]) -> ConditionBus:
         return super().build_conditions(batch)
 
     def add_noise(self, batch: Mapping[str, Any],
-                  timesteps: Mapping[str, Tensor]) -> VPP2DiffusionRuntime:
+                  draw: DiffusionDraw) -> DiffusionRuntime:
         video, action = self._latents(batch)
         for name, tensor in (("video", video), ("action", action)):
-            t = timesteps[name]
+            t = draw.sigma[name]
             if t.shape != (tensor.shape[0],) or not bool(torch.isfinite(t).all()):
                 raise ValueError(f"{name} timestep must be finite [B]")
             if bool(((t < 0) | (t > 1)).any()):
                 raise ValueError(f"{name} timestep must lie in [0,1]")
-        if not bool((timesteps["video"] == 1).all()):
+        if not bool((draw.sigma["video"] == 1).all()):
             raise ValueError("action-stage video timestep must be pure noise (1)")
         raw_pad = batch.get("action_is_pad")
         if raw_pad is not None:
@@ -216,51 +139,26 @@ class VPP2TrainingWorldModel(WorldModel):
                 not isinstance(image_pad, Tensor) or image_pad.ndim != 2
                 or image_pad.shape[0] != video.shape[0]):
             raise ValueError("image_is_pad must be [B,N]")
-        model_t = {"video": (timesteps["video"] * 1000).to(video),
-                   "action": (timesteps["action"] * 1000).to(action)}
-        noise_video, noise_action = torch.randn_like(video), torch.randn_like(action)
-        noised_video = noise_video
+        runtime = super().add_noise(batch, draw)
+        # sigma=1: the video input is the noise itself, as in master.
+        noised_video = draw.noise["video"]
         if batch.get("fuse_vae_embedding_in_latents", False):
-            noised_video = noise_video.clone()
+            noised_video = noised_video.clone()
             noised_video[:, :, :1] = video[:, :, :1].detach()
-        return VPP2DiffusionRuntime(
-            timesteps=dict(timesteps),
-            noised={"video": noised_video,
-                    "action": self.action_scheduler.add_noise(action, noise_action, model_t["action"])},
-            noise={"video": noise_video, "action": noise_action},
-            targets={"action": self.action_scheduler.training_target(action, noise_action, model_t["action"])},
-            attention_key_valid=batch.get("attention_key_valid"),
-            attention_labels=batch.get("attention_labels"),
-            action_is_pad=raw_pad, action_loss_is_pad=loss_pad, model_timesteps=model_t)
+        runtime.noised["video"] = noised_video
+        if loss_pad is not None:
+            # Terminal steps are padded in the data but still supervised.
+            runtime.loss_valid["action"] = ~loss_pad
+        return runtime
 
     def stream_inputs(self, runtime: DiffusionRuntime) -> dict[str, Tensor]:
         return super().stream_inputs(runtime)
-
-    def run_group(self, group: AttentionGroup, inputs: Mapping[str, Tensor],
-                  conditions: ConditionBus, runtime: DiffusionRuntime) -> EngineOutput:
-        if not isinstance(runtime, VPP2DiffusionRuntime):
-            raise TypeError("VPP2 run_group requires VPP2DiffusionRuntime")
-        index = self.spec.attention_groups.index(group)
-        plan = self.plans[index]
-        labels = runtime.attention_labels if plan.visibility is not None else None
-        plan = plan.bind(labels=labels, key_valid=runtime.attention_key_valid)
-        return self.engine.run(
-            group, {name: inputs[name] for name in group.stream_names},
-            {name: self.blocks[name] for name in group.stream_names},
-            plan, self.layout, conditions=conditions,
-            timesteps={name: runtime.model_timesteps[name] for name in group.stream_names},
-            captures={name: layers for name, layers in self.captures.items()
-                      if name in group.stream_names})
 
     def compute_losses(self, output: EngineOutput, runtime: DiffusionRuntime,
                        outputs: Mapping[str, Tensor], *,
                        step: int) -> tuple[Tensor, dict[str, Any]]:
         del output
-        if not isinstance(runtime, VPP2DiffusionRuntime):
-            raise TypeError("VPP2 compute_losses requires VPP2DiffusionRuntime")
-        loss_action = masked_action_loss(
-            outputs["action_flow"], runtime.targets["action"],
-            self.action_scheduler.training_weight(runtime.model_timesteps["action"]),
-            runtime.action_loss_is_pad) * self._action_loss_spec.weight_at(step)
+        loss_action = (self._loss_value(self._action_loss_spec, runtime, outputs)
+                       * self._action_loss_spec.weight_at(step))
         return loss_action, {"loss_action": loss_action.detach(),
                              "loss_video": loss_action.detach().new_zeros(())}
