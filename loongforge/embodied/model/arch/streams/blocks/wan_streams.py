@@ -317,8 +317,12 @@ class WanDiTStream(nn.Module):
                 )
             assert self.spec.timestep_embed_width is not None
             assert self.time_projection is not None
-            timestep_embedding = self.time_embedding(sinusoidal_embedding(
-                self.spec.timestep_embed_width, timestep.reshape(-1)))
+            # As master's pre_dit: the embedding follows t's dtype, then the
+            # weights' (t stays float32 under RngPolicy(sigma_dtype="float32")).
+            time_input = sinusoidal_embedding(
+                self.spec.timestep_embed_width, timestep.reshape(-1))
+            timestep_embedding = self.time_embedding(
+                time_input.to(dtype=self.time_embedding[0].weight.dtype))
             extras["timestep_embedding"] = timestep_embedding
             modulation = self.time_projection(timestep_embedding).unflatten(
                 -1, (self.spec.modulation_slots.width, self.spec.residual_width))
