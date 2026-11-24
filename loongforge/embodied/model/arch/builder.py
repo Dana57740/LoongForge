@@ -394,7 +394,8 @@ class WorldModel(nn.Module):
         being counted inside this class: weight ramping (``WeightRamp``) needs
         the **optimizer step**, which only the trainer knows. A local counter
         would diverge under gradient accumulation and on resume from a
-        checkpoint.
+        checkpoint. Training a model whose losses ramp needs the step, so a
+        training batch without it raises there (``_global_step``).
 
         Args:
             batch: Raw batch; stream inputs, condition sources, and
@@ -405,7 +406,7 @@ class WorldModel(nn.Module):
         Returns:
             A tuple of the total loss and a metrics dict.
         """
-        step = int(batch.get("global_step", 0))
+        step = self._global_step(batch)
         draw = self.draw(batch)                                     # 1
         self._notify_step("draw", draw)
         conditions = self.build_conditions(batch)                   # 2
@@ -449,6 +450,24 @@ class WorldModel(nn.Module):
         handle = RemovableHandle(self._step_hooks)
         self._step_hooks[handle.id] = hook
         return handle
+
+    def _global_step(self, batch: Mapping[str, Any]) -> int:
+        """The batch's ``global_step``; 0 when it has none.
+
+        A training forward of a model whose losses ramp with the step raises
+        instead (Lane C v2 §1.9): its ramps would stay at their step-0 values
+        and nothing would report it. Evaluation keeps the 0.
+        """
+        if "global_step" in batch:
+            return int(batch["global_step"])
+        ramped = [loss.name for loss in self.spec.diffusion.losses
+                  if loss.enabled and loss.ramp is not None and not loss.ramp.is_constant]
+        if self.training and ramped:
+            raise ValueError(
+                f"losses {ramped} ramp with the training step, but the batch has no "
+                "global_step: pass the trainer's iteration to ArchWorldModel.forward "
+                "or put global_step in the batch")
+        return 0
 
     def _notify_step(self, event: str, value: Any) -> None:
         for hook in tuple(self._step_hooks.values()):
@@ -751,6 +770,10 @@ class WorldModel(nn.Module):
           - metrics store a detached **tensor**, not a Python float: calling
             ``float()`` forces a device-to-host sync every step, and
             formatting belongs to the trainer (I4′);
+          - each term is logged as ``loss_<name>``: the trainer averages over
+            ranks only the keys that contain "loss", so a bare head name would
+            log rank 0's local value. Weights stay under ``<name>/weight``,
+            which needs no averaging;
           - weights are read from ``LossSpec`` only, and a ``HeadSpec.weight``
             other than 1.0 raises -- the same 0.5 written on two objects with
             only one of them taking effect is the hardest class of config
@@ -789,7 +812,7 @@ class WorldModel(nn.Module):
             value = self._loss_value(loss, runtime, outputs)
             weight = loss.weight_at(step)
             terms.append(weight * value)
-            metrics[loss.name] = value.detach()
+            metrics[f"loss_{loss.name}"] = value.detach()
             metrics[f"{loss.name}/weight"] = weight
         # DiffusionSpec.__post_init__ guarantees losses is non-empty, so stack
         # never gets an empty list

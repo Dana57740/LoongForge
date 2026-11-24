@@ -337,8 +337,7 @@ class WeightRamp:
 
 @dataclass(frozen=True)
 class LossSpec:
-    """One loss term. ``name`` is both the logging key and the key in the
-    ``metrics`` dict (I4).
+    """One loss term, logged as ``loss_<name>`` in the ``metrics`` dict (I4).
 
     Exactly **one** of ``stream`` and ``head`` may be set: a loss is computed
     either on the output of one stream (the video stream's flow matching loss)
@@ -346,7 +345,7 @@ class LossSpec:
     setting neither is a dead configuration.
 
     Attributes:
-        name: Logging / ``metrics`` key.
+        name: Term name; the ``metrics`` key is ``loss_<name>``.
         stream: Stream this loss is computed on, or None.
         head: Head this loss is computed on, or None.
         objective: What is computed between prediction and target.

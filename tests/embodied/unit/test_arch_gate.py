@@ -20,17 +20,22 @@ which fails silently rather than loudly when it breaks:
 
 from __future__ import annotations
 
+from dataclasses import replace
+from types import SimpleNamespace
+
 import pytest
 import torch
 from omegaconf import OmegaConf
 
 from loongforge.embodied.model.arch.builder import WorldModel
+from loongforge.embodied.model.arch.diffusion.loss import WeightRamp
 from loongforge.embodied.model.arch.layout import TokenLayout
 from loongforge.embodied.model.arch.modeling_arch import ArchWorldModel
 from loongforge.embodied.model.arch.spec.world import WorldModelSpec
 from loongforge.embodied.model.arch.streams.engine import JointAttentionEngine
 from loongforge.embodied.model.registry import MODEL_REGISTRY
 from loongforge.embodied.train.config_map import get_config_path, get_model_schema
+from loongforge.embodied.train.trainers.supervised.finetune_trainer import FinetuneTrainer
 
 from test_arch_blocks import BATCH, CONTEXT_LEN, tiny_spec
 
@@ -194,6 +199,19 @@ class StubImageEncoder(torch.nn.Module):
         return torch.randn(frames.shape[0], CONTEXT_LEN, self.width)
 
 
+def make_shell(spec: WorldModelSpec) -> ArchWorldModel:
+    """A shell around ``spec``, wired to stub encoders."""
+    from loongforge.embodied.model.arch.model_configuration_arch import Vpp2Config
+
+    core = WorldModel(spec, engine=JointAttentionEngine(backend="dense"),
+                      layout=TokenLayout.from_geometry(spec.geometry,
+                                                       spec.streams))
+    return ArchWorldModel(
+        Vpp2Config(dtype="float32"), core,
+        vae=StubVAE(spec),
+        image_encoder=StubImageEncoder(spec.condition("clip_image").width))
+
+
 @pytest.fixture
 def shell() -> ArchWorldModel:
     """A vpp2 shell at test width, wired to stub encoders.
@@ -202,16 +220,7 @@ def shell() -> ArchWorldModel:
     and loss terms are the production ones) with the widths and geometry shrunk
     — the shell's job is tensor plumbing, which is width-independent.
     """
-    from loongforge.embodied.model.arch.model_configuration_arch import Vpp2Config
-
-    spec = tiny_spec("vpp2")
-    core = WorldModel(spec, engine=JointAttentionEngine(backend="dense"),
-                      layout=TokenLayout.from_geometry(spec.geometry,
-                                                       spec.streams))
-    return ArchWorldModel(
-        Vpp2Config(dtype="float32"), core,
-        vae=StubVAE(spec),
-        image_encoder=StubImageEncoder(spec.condition("clip_image").width))
+    return make_shell(tiny_spec("vpp2"))
 
 
 def pixel_batch(shell: ArchWorldModel) -> dict:
@@ -239,7 +248,7 @@ def test_shell_turns_a_pixel_batch_into_a_scalar_loss(shell):
     assert loss.ndim == 0
     assert torch.isfinite(loss)
     for term in shell.spec.diffusion.losses:
-        assert metrics[term.name].ndim == 0
+        assert metrics[f"loss_{term.name}"].ndim == 0
 
 
 def test_shell_fills_one_batch_key_per_stream_and_condition(shell):
@@ -294,3 +303,36 @@ def test_shell_rejects_a_config_of_the_wrong_type():
     """
     with pytest.raises(TypeError, match="WorldModelConfig"):
         ArchWorldModel.from_pretrained(object())
+
+
+def test_trainer_iteration_drives_the_loss_weight_ramp():
+    """The trainer's ``iteration`` is the core's ``global_step``.
+
+    ``_select_forward_kwargs`` passes ``iteration`` only to a forward that
+    names it, and nothing else writes ``global_step`` into the batch. Without
+    it every ``WeightRamp`` would stay at its start value: internw0_delta's
+    ``track_align`` (0.0 -> 0.1) and any YAML ``warmup_steps`` would never
+    train, so a training forward without it raises.
+    """
+    spec = tiny_spec("vpp2")
+    ramp = WeightRamp(start_step=0, end_step=10, start_value=0.0, end_value=1.0)
+    spec = replace(spec, diffusion=replace(spec.diffusion, losses=tuple(
+        replace(loss, ramp=ramp) if loss.head == "action_flow" else loss
+        for loss in spec.diffusion.losses)))
+    shell = make_shell(spec)
+    kwargs = FinetuneTrainer._select_forward_kwargs(SimpleNamespace(model=shell), iteration=5)
+    assert kwargs == {"iteration": 5}
+    _, metrics = shell(pixel_batch(shell), **kwargs)
+    assert metrics["action_flow/weight"] == 0.5
+    _, metrics = shell(pixel_batch(shell), iteration=10)
+    assert metrics["action_flow/weight"] == 1.0
+    with pytest.raises(ValueError, match="no global_step"):
+        shell(pixel_batch(shell))
+
+
+def test_batch_global_step_must_agree_with_the_trainer_iteration(shell):
+    """Two step counters that disagree raise instead of one winning silently."""
+    batch = {**pixel_batch(shell), "global_step": 3}
+    shell(batch, iteration=3)
+    with pytest.raises(ValueError, match="disagrees"):
+        shell(batch, iteration=4)

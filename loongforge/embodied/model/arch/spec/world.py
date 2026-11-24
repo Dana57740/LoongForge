@@ -26,7 +26,7 @@ from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from typing import Any
 
-from ..diffusion.loss import LossSpec, WeightRamp
+from ..diffusion.loss import LossSpec, UniformWeight, WeightRamp
 from ..diffusion.spec import DiffusionSpec
 from ..geometry import GeometrySpec
 from ..heads.spec import HeadSpec
@@ -536,6 +536,12 @@ class WorldModelSpec:
             stream = loss.stream if loss.stream is not None else sources[loss.head]
             if stream in self.diffusion.timesteps:
                 loss.weight_of.check(self.diffusion.sampler_for(stream), loss=loss.name)
+            elif not isinstance(loss.weight_of, UniformWeight):
+                # compute_losses would skip the weight without a word.
+                raise ValueError(
+                    f"LossSpec({loss.name!r}).weight_of={type(loss.weight_of).__name__} "
+                    f"weights by the source stream's timestep, but stream {stream!r} "
+                    "draws none; use UniformWeight (L3/V6)")
 
     def _validate_head_layer(self) -> None:
         """L4: head names are unique and every head's source is reachable.

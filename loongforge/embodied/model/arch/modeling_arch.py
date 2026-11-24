@@ -310,17 +310,34 @@ class ArchWorldModel(nn.Module):
             self.core.blocks["video"].eval()
         return self
 
-    def forward(self, batch: Any) -> Tuple[Tensor, Dict[str, Any]]:
+    def forward(self, batch: Any, iteration: Optional[int] = None
+                ) -> Tuple[Tensor, Dict[str, Any]]:
         """Run one training step. Interface I4: ``(loss, metrics)``.
 
         Args:
             batch: Either a ``FastWAMPreparedBatch`` or a plain dict with the
                 same keys (``video``, ``action``, ``context``, ``proprio``).
+            iteration: Optimizer steps completed before this one, from the
+                trainer (``_select_forward_kwargs`` passes it only to a forward
+                that names it). It becomes the core's ``global_step``, which
+                ``LossSpec.weight_at`` reads for ``WeightRamp``; without it
+                every ramped loss stays at its start value.
 
         Returns:
             The weighted total loss and the per-term metrics dict.
+
+        Raises:
+            ValueError: The sample already carries a different
+                ``global_step``; two step counters would disagree silently.
         """
         sample = batch.to_sample() if hasattr(batch, "to_sample") else dict(batch)
+        if iteration is not None:
+            given = sample.get("global_step")
+            if given is not None and int(given) != int(iteration):
+                raise ValueError(
+                    f"batch global_step={int(given)} disagrees with the trainer "
+                    f"iteration={int(iteration)}")
+            sample = {**sample, "global_step": int(iteration)}
         return self.core(self.encode_batch(sample))
 
     def encode_batch(self, sample: Mapping[str, Any]) -> Dict[str, Any]:
@@ -363,9 +380,11 @@ class ArchWorldModel(nn.Module):
             latents = latents.to(dtype=self._dtype)
         else:
             latents = self.encode_video(video)
-        out: Dict[str, Any] = {
-            "global_step": int(sample.get("global_step", 0)),
-        }
+        out: Dict[str, Any] = {}
+        # Passed on only when given: the core decides what a missing step
+        # means (0 in evaluation, an error when training a ramped loss).
+        if "global_step" in sample:
+            out["global_step"] = int(sample["global_step"])
         if action_stage:
             for name in ("action_is_pad", "action_terminal_mask", "image_is_pad"):
                 if sample.get(name) is not None:
