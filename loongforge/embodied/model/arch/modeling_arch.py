@@ -159,13 +159,13 @@ def _build_image_encoder(model_id: str) -> nn.Module:
         model_id: Directory (or file) holding the Wan encoder weights.
 
     Returns:
-        A frozen, eval-mode ``WanImageEncoder``.
+        A frozen, eval-mode ``VPP2ImageEncoder``: the Wan CLIP tower with
+        master VPP2's dtype rules (only VPP2 declares ``clip_image``).
     """
-    from loongforge.embodied.model.dreamzero.modules.wan_video_image_encoder \
-        import WanImageEncoder
+    from .vpp2_training import VPP2ImageEncoder
 
     weights = _optional_file(model_id, _CLIP_FILENAME)
-    encoder = WanImageEncoder(image_encoder_pretrained_path=weights)
+    encoder = VPP2ImageEncoder(image_encoder_pretrained_path=weights)
     _load_into(getattr(encoder, "model", encoder), weights, "CLIP")
     return encoder.eval().requires_grad_(False)
 
@@ -258,6 +258,7 @@ class ArchWorldModel(nn.Module):
 
         Raises:
             TypeError: ``cfg`` is not a ``WorldModelConfig``.
+            NotImplementedError: ``cfg`` asks for VPP2's joint stage.
         """
         if not isinstance(cfg, WorldModelConfig):
             raise TypeError(
@@ -268,6 +269,14 @@ class ArchWorldModel(nn.Module):
             cfg.model_type == "vpp2"
             and getattr(cfg, "training_stage", "joint") == "action"
         )
+        if cfg.model_type == "vpp2" and not action_stage:
+            # Only the action stage has a recipe checked against master. The
+            # generic WorldModel was never compared with master's joint model
+            # and leaves the action padding unmasked.
+            raise NotImplementedError(
+                "VPP2 training_stage='joint' is not implemented on the arch path: "
+                "only the action stage is checked against master, and the generic "
+                "core would train a joint run without error. Set training_stage: action")
         core_cls = WorldModel
         if action_stage:
             from .vpp2_training import VPP2TrainingWorldModel
@@ -370,7 +379,10 @@ class ArchWorldModel(nn.Module):
                     expected.num_frames, expected.frame_height,
                     expected.frame_width * expected.num_views):
                 raise ValueError("VPP2 pixel video disagrees with configured geometry")
-            with torch.no_grad(), torch.autocast(video.device.type, enabled=False):
+            # fp32 pixels into the fp32 VAE under the caller's autocast, as
+            # master's ``_encode_video_latents``: the trainer's bf16 autocast
+            # runs the convolutions.
+            with torch.no_grad():
                 first = self.vae.encode(video[:, :, :1].float(), tiled=False)
             if tuple(first.shape[2:]) != (1, *expected.latent_grid[1:]):
                 raise ValueError("VPP2 first-frame VAE grid disagrees with geometry")

@@ -200,14 +200,19 @@ class StubImageEncoder(torch.nn.Module):
 
 
 def make_shell(spec: WorldModelSpec) -> ArchWorldModel:
-    """A shell around ``spec``, wired to stub encoders."""
+    """A shell around ``spec``, wired to stub encoders.
+
+    The core is the generic ``WorldModel``, so the config names the stage that
+    path serves (whole-video VAE encode). ``from_pretrained`` refuses that stage
+    for VPP2 training; the batch plumbing tested here is shared with it.
+    """
     from loongforge.embodied.model.arch.model_configuration_arch import Vpp2Config
 
     core = WorldModel(spec, engine=JointAttentionEngine(backend="dense"),
                       layout=TokenLayout.from_geometry(spec.geometry,
                                                        spec.streams))
     return ArchWorldModel(
-        Vpp2Config(dtype="float32"), core,
+        Vpp2Config(dtype="float32", training_stage="joint"), core,
         vae=StubVAE(spec),
         image_encoder=StubImageEncoder(spec.condition("clip_image").width))
 
@@ -303,6 +308,47 @@ def test_shell_rejects_a_config_of_the_wrong_type():
     """
     with pytest.raises(TypeError, match="WorldModelConfig"):
         ArchWorldModel.from_pretrained(object())
+
+
+def test_vpp2_first_frame_vae_runs_under_the_callers_autocast():
+    """As master's ``_encode_video_latents``: fp32 pixels into the VAE, whose
+    convolutions the trainer's bf16 autocast runs."""
+    from loongforge.embodied.model.arch.model_configuration_arch import Vpp2Config
+
+    spec = tiny_spec("vpp2")
+    seen = []
+
+    class FirstFrameVAE(StubVAE):
+        def encode(self, video: torch.Tensor, tiled: bool = False) -> torch.Tensor:
+            seen.append((video.dtype, torch.is_autocast_enabled(video.device.type)))
+            return torch.randn(video.shape[0], self.channels, 1, *self.grid[1:])
+
+    core = WorldModel(spec, engine=JointAttentionEngine(backend="dense"),
+                      layout=TokenLayout.from_geometry(spec.geometry, spec.streams))
+    shell = ArchWorldModel(Vpp2Config(dtype="float32"), core, vae=FirstFrameVAE(spec),
+                           image_encoder=StubImageEncoder(spec.condition("clip_image").width))
+    with torch.autocast("cpu", dtype=torch.bfloat16):
+        shell.encode_batch(pixel_batch(shell))
+    assert seen == [(torch.float32, True)]
+
+
+def test_vpp2_joint_stage_is_rejected_on_the_arch_path(monkeypatch):
+    """Only the action stage has a recipe checked against master.
+
+    The generic core would accept a joint config and train it without error,
+    although it was never compared with master's joint model and leaves the
+    action padding unmasked. The check must come before the full-size core is
+    built.
+    """
+    from loongforge.embodied.model.arch import modeling_arch
+    from loongforge.embodied.model.arch.model_configuration_arch import Vpp2Config
+
+    def unreachable(**_):
+        raise AssertionError("from_pretrained started building a joint VPP2 model")
+
+    monkeypatch.setattr(modeling_arch, "JointAttentionEngine", unreachable)
+    with pytest.raises(NotImplementedError, match="training_stage: action"):
+        ArchWorldModel.from_pretrained(Vpp2Config(dtype="float32", training_stage="joint"))
 
 
 def test_trainer_iteration_drives_the_loss_weight_ramp():

@@ -153,7 +153,7 @@ class Vpp2Config(WorldModelConfig):
     inference_steps: Optional[int] = None
     proprio_dim: Optional[int] = None
     video_attention_mask_mode: Optional[str] = None
-    training_stage: str = field(default="joint", metadata={"runtime": True})
+    training_stage: str = field(default="action", metadata={"runtime": True})  # as master
     video_checkpoint_path: Optional[str] = field(
         default=None, metadata={"runtime": True})
     action_dit_pretrained_path: Optional[str] = field(

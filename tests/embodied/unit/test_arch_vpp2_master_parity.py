@@ -16,7 +16,8 @@ The CPU L3 cases and the timestep weights are also checked against
 ``data/vpp2_master_parity_86a017bb.json``, master's outputs for the same
 inputs written by ``data/make_vpp2_master_parity_golden.py``; those tests need
 no master checkout. The live tests (CUDA draws, heads) are skipped without the
-sibling checkout.
+sibling checkout. The last tests cover the recipe's own contracts: the
+declarations it refuses to train without, and no host sync in its L3 steps.
 """
 
 import ast
@@ -33,16 +34,21 @@ from typing import Any, Dict, Optional
 
 import pytest
 import torch
+import torchvision.transforms as T
 from torch.nn import functional as F
+from torch.nn.attention import SDPBackend, sdpa_kernel
 
-from loongforge.embodied.model.arch.diffusion.loss import Bsmntw
-from loongforge.embodied.model.arch.diffusion.timesteps import TimestepSampler, UniformShift
+from loongforge.embodied.model.arch.diffusion.loss import (
+    Bsmntw, MeanSquaredError, UniformWeight)
+from loongforge.embodied.model.arch.diffusion.schedule import RectifiedFlow
+from loongforge.embodied.model.arch.diffusion.timesteps import (
+    Constant, RngPolicy, TimestepSampler, UniformShift)
 from loongforge.embodied.model.arch.layout import TokenLayout
 from loongforge.embodied.model.arch.spec.core import get_provider
 import loongforge.embodied.model.arch.spec.providers  # noqa: F401 -- register providers
 from loongforge.embodied.model.arch.streams.engine import JointAttentionEngine
 from loongforge.embodied.model.arch.transfer import vpp2_to_arch
-from loongforge.embodied.model.arch.vpp2_training import VPP2TrainingWorldModel
+from loongforge.embodied.model.arch.vpp2_training import VPP2ImageEncoder, VPP2TrainingWorldModel
 
 
 REPO = Path(__file__).resolve().parents[3]
@@ -72,19 +78,27 @@ def case_id(case: tuple) -> str:
     return f"{dtype}-{shift}-{padding}-h{horizon}"
 
 
-def _tiny_model(action_shift: float, horizon: int = HORIZON) -> VPP2TrainingWorldModel:
-    """The real VPP2 provider and recipe, shrunk; geometry as in test_arch_blocks.
+def _tiny_spec(action_shift: float, horizon: int = HORIZON):
+    """The real VPP2 provider, shrunk; geometry as in test_arch_blocks.
 
     The frequency ratio must divide the horizon (V2); L3 does not read it.
     """
     spec = get_provider("vpp2")(action_shift=action_shift, action_width=ACTION_DIM, **SCALARS)
     geo = spec.geometry
-    spec = replace(spec, geometry=replace(
+    return replace(spec, geometry=replace(
         geo, frame_height=4 * geo.vae_spatial_stride, frame_width=4 * geo.vae_spatial_stride,
         num_frames=1 + geo.vae_temporal_stride, action_horizon=horizon,
         action_video_freq_ratio=2 if horizon % 2 == 0 else 1, action_dim=ACTION_DIM))
+
+
+def _recipe(spec) -> VPP2TrainingWorldModel:
     return VPP2TrainingWorldModel(spec, engine=JointAttentionEngine(backend="dense"),
                                   layout=TokenLayout.from_geometry(spec.geometry, spec.streams))
+
+
+def _tiny_model(action_shift: float, horizon: int = HORIZON) -> VPP2TrainingWorldModel:
+    """The real VPP2 provider and recipe, shrunk."""
+    return _recipe(_tiny_spec(action_shift, horizon))
 
 
 def _exec_module(name: str, path: Path, patch: pytest.MonkeyPatch):
@@ -111,9 +125,11 @@ def load_master(patch: pytest.MonkeyPatch, legacy: Path = LEGACY) -> SimpleNames
     """Master's scheduler, heads and training methods, executed from ``legacy``."""
     scheduler = _exec_module("_vpp2_master_scheduler", legacy / "scheduler.py", patch)
     dit = _exec_module("_vpp2_master_wan_video_dit", legacy / "wan_video_dit.py", patch)
+    clip = _exec_module("_vpp2_master_wan_video_clip", legacy / "wan_video_clip.py", patch)
     return SimpleNamespace(
         Scheduler=scheduler.WanContinuousFlowMatchScheduler,
         Head=dit.Head, WanVideoDiT=dit.WanVideoDiT,
+        ClipEncoder=clip.WanImageEncoderCLIP, ClipVisionTransformer=clip.VisionTransformer,
         training={**_methods(legacy / "libero_action_model.py", "LiberoActionModel",
                              "build_inputs", "training_loss", "_training_loss_action_only"),
                   **_methods(legacy / "vpp2.py", "VPP2", "_pack_action_tokens",
@@ -361,3 +377,107 @@ def test_action_head_matches_master_post_dit(master, dtype):
     hidden = torch.randn(BATCH, HORIZON, width).to(dtype)
     expected = master.action_post_dit(SimpleNamespace(head=legacy), hidden, {})
     _exact("action head", head(hidden), expected)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="master encodes CLIP under CUDA autocast")
+def test_clip_features_match_master_wan_video_clip(master):
+    """``VPP2ImageEncoder`` follows master's CLIP dtype rules (tiny tower, same weights).
+
+    Run as the trainer runs it: fp16 tower, bf16 autocast, the harness's SDPA kernel.
+    """
+    from loongforge.embodied.model.dreamzero.modules.wan_video_image_encoder import (
+        VisionTransformer)
+
+    dims = dict(image_size=28, patch_size=14, dim=64, mlp_ratio=4, out_dim=32,
+                num_heads=4, num_layers=3, activation="gelu")
+    torch.manual_seed(8)
+    legacy = master.ClipVisionTransformer(**dims)
+    tower = VisionTransformer(**dims)
+    tower.load_state_dict(legacy.state_dict(), strict=True)
+    legacy, tower = (module.to("cuda", torch.float16).eval() for module in (legacy, tower))
+    normalize = T.Normalize(mean=[0.48145466, 0.4578275, 0.40821073],
+                            std=[0.26862954, 0.26130258, 0.27577711])
+    video = (torch.rand(BATCH, 3, 2, 16, 32) * 2 - 1).to("cuda", torch.bfloat16)
+    ours = SimpleNamespace(model=SimpleNamespace(visual=tower, image_size=tower.image_size),
+                           transforms=T.Compose([normalize]))
+    with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16), \
+            sdpa_kernel(SDPBackend.EFFICIENT_ATTENTION):
+        expected = master.ClipEncoder.forward(
+            SimpleNamespace(visual=legacy, normalize=normalize),
+            [video[i].to(torch.float16) for i in range(BATCH)])
+        actual = VPP2ImageEncoder.encode_image(ours, video[:, :, :1].transpose(1, 2))
+    _exact("clip features", actual, expected)
+
+
+def _with_sampler(spec, stream: str, **changes):
+    timesteps = dict(spec.diffusion.timesteps)
+    timesteps[stream] = replace(timesteps[stream], **changes)
+    return replace(spec, diffusion=replace(spec.diffusion, timesteps=timesteps))
+
+
+def _with_action_loss(spec, **changes):
+    losses = tuple(replace(loss, **changes) if loss.head == "action_flow" else loss
+                   for loss in spec.diffusion.losses)
+    return replace(spec, diffusion=replace(spec.diffusion, losses=losses))
+
+
+# Each declaration master parity rests on, broken once: (spec change, message).
+RECIPE_GUARDS = {
+    "action-before-video": (
+        lambda spec: replace(spec, diffusion=replace(
+            spec.diffusion, timesteps=dict(reversed(spec.diffusion.timesteps.items())))),
+        "draws video then action"),
+    "timestep-first": (
+        lambda spec: _with_sampler(spec, "action", rng=RngPolicy(order="t_first")),
+        "draws video then action"),
+    "float32-sigma": (
+        lambda spec: _with_sampler(spec, "action", rng=RngPolicy(sigma_dtype="float32")),
+        "draws video then action"),
+    "unit-timestep": (
+        lambda spec: replace(spec, diffusion=replace(
+            spec.diffusion, schedule=RectifiedFlow(num_train_timesteps=1))),
+        "1000-step"),
+    "video-not-pure-noise": (
+        lambda spec: _with_sampler(spec, "video", distribution=Constant(value=0.5)),
+        "pure-noise video"),
+    "plain-mse": (
+        lambda spec: _with_action_loss(spec, objective=MeanSquaredError()),
+        "TokenMeanSquaredError weighted by Bsmntw"),
+    "unweighted": (
+        lambda spec: _with_action_loss(spec, weight_of=UniformWeight()),
+        "TokenMeanSquaredError weighted by Bsmntw"),
+}
+
+
+@pytest.mark.parametrize("name", RECIPE_GUARDS)
+def test_recipe_rejects_a_spec_that_would_differ_from_master(name):
+    """The recipe checks these when it is built, not while training."""
+    mutate, message = RECIPE_GUARDS[name]
+    spec = mutate(_tiny_spec(SHIFTS["libero"]))
+    with pytest.raises(ValueError, match=message):
+        _recipe(spec)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="host-sync detection needs CUDA")
+@pytest.mark.parametrize("padding", ["no-pad", "terminal-pad"])
+def test_recipe_l3_steps_do_not_sync_the_host(padding):
+    """draw, add_noise and compute_losses stay on the device (Lane C v2 §1.13, T23).
+
+    One step runs first, so one-time setup is not counted.
+    """
+    device = torch.device("cuda")
+    model = _tiny_model(SHIFTS["libero"])
+    _, batch, _, prediction = _case_inputs(model, ("bf16", "libero", padding, HORIZON), device)
+
+    def step():
+        runtime = model.add_noise(batch, model.draw(batch))
+        return model.compute_losses(None, runtime, {"action_flow": prediction}, step=0)
+
+    step()
+    torch.cuda.synchronize()
+    previous = torch.cuda.get_sync_debug_mode()
+    torch.cuda.set_sync_debug_mode("error")
+    try:
+        step()
+    finally:
+        torch.cuda.set_sync_debug_mode(previous)

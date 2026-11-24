@@ -12,6 +12,7 @@ per-token action reduction are L3/L4 declarations of the VPP2 provider
 ``TokenMeanSquaredError``); the generic ``WorldModel`` executes them. This
 recipe adds only VPP2's own policies: the frozen pure-noise video stream, the
 terminal-padding exception and the optional first-frame fusion.
+``VPP2ImageEncoder`` is the wrapper's CLIP tower with master's dtype rules.
 """
 
 from __future__ import annotations
@@ -21,16 +22,18 @@ from typing import Any, Mapping
 
 import torch
 from torch import Tensor
+from torch.nn import functional as F
 
+from ..dreamzero.modules.wan_video_image_encoder import WanImageEncoder
 from .builder import DiffusionDraw, DiffusionRuntime, WorldModel
 from .diffusion.loss import Bsmntw, TokenMeanSquaredError
-from .diffusion.timesteps import RngPolicy, UniformShift
+from .diffusion.timesteps import Constant, RngPolicy, UniformShift
 from .layout import TokenLayout
 from .spec.world import WorldModelSpec
 from .streams.conditions import ConditionBus
 from .streams.engine import EngineOutput, JointAttentionEngine, StreamEngine
 
-__all__ = ["VPP2TrainingWorldModel"]
+__all__ = ["VPP2ImageEncoder", "VPP2TrainingWorldModel"]
 
 # Master ``LiberoActionModel.training_loss`` draws video noise, then (no draw)
 # the pure-noise video t, then action noise and the action t, and casts t to
@@ -63,6 +66,13 @@ class VPP2TrainingWorldModel(WorldModel):
         sampler = spec.diffusion.sampler_for("action")
         if not isinstance(sampler.distribution, UniformShift) or not sampler.broadcast.is_per_sample:
             raise ValueError("VPP2 action training requires per-sample UniformShift")
+        # add_noise trusts these two samplers instead of reading sigma back,
+        # which would sync the host every step.
+        video_sampler = spec.diffusion.sampler_for("video")
+        if (not isinstance(video_sampler.distribution, Constant)
+                or video_sampler.distribution.value != 1.0
+                or not video_sampler.broadcast.is_per_sample):
+            raise ValueError("VPP2 action training requires pure-noise video, per-sample Constant(1.0)")
         # Master parity rests on these provider declarations; refuse to train a
         # recipe whose numbers silently differ from master.
         if list(spec.diffusion.timesteps) != ["video", "action"] or any(
@@ -112,14 +122,11 @@ class VPP2TrainingWorldModel(WorldModel):
     def add_noise(self, batch: Mapping[str, Any],
                   draw: DiffusionDraw) -> DiffusionRuntime:
         video, action = self._latents(batch)
+        # Values are not read back: __init__ pins the samplers (video
+        # Constant(1.0), action UniformShift on [0, 1]).
         for name, tensor in (("video", video), ("action", action)):
-            t = draw.sigma[name]
-            if t.shape != (tensor.shape[0],) or not bool(torch.isfinite(t).all()):
-                raise ValueError(f"{name} timestep must be finite [B]")
-            if bool(((t < 0) | (t > 1)).any()):
-                raise ValueError(f"{name} timestep must lie in [0,1]")
-        if not bool((draw.sigma["video"] == 1).all()):
-            raise ValueError("action-stage video timestep must be pure noise (1)")
+            if draw.sigma[name].shape != (tensor.shape[0],):
+                raise ValueError(f"{name} timestep must be [B]")
         raw_pad = batch.get("action_is_pad")
         if raw_pad is not None:
             if not isinstance(raw_pad, Tensor) or raw_pad.shape != action.shape[:2]:
@@ -131,8 +138,9 @@ class VPP2TrainingWorldModel(WorldModel):
             if raw_pad is None or not isinstance(terminal, Tensor) or terminal.shape != raw_pad.shape:
                 raise ValueError("action_terminal_mask must match action_is_pad [B,T]")
             terminal = terminal.to(device=action.device, dtype=torch.bool)
-            if bool((terminal & ~raw_pad).any()):
-                raise ValueError("action_terminal_mask must be a subset of action_is_pad")
+            # Not checked to lie inside the padding, which would sync: the
+            # dataset builds it as action_is_pad & tail, and a terminal step
+            # outside the padding counts in the loss either way.
             loss_pad = raw_pad & ~terminal
         image_pad = batch.get("image_is_pad")
         if image_pad is not None and (
@@ -162,3 +170,30 @@ class VPP2TrainingWorldModel(WorldModel):
                        * self._action_loss_spec.weight_at(step))
         return loss_action, {"loss_action": loss_action.detach(),
                              "loss_video": loss_action.detach().new_zeros(())}
+
+
+class VPP2ImageEncoder(WanImageEncoder):
+    """The Wan CLIP tower with master VPP2's dtype rules; DreamZero keeps its own.
+
+    Master's ``WanImageEncoderCLIP`` (``model/vpp2/modules/wan_video_clip.py``)
+    and the dreamzero ``WanImageEncoder`` run the same tower and weights but
+    differ in two places, which made every arch CLIP feature differ from
+    master's. Master casts the frames to fp16 before the bicubic resize and
+    feeds the resized pixels to the tower as they are. It also adds the fp16
+    cls/pos embeddings without casting them, so under bf16 autocast
+    ``torch.cat`` promotes the residual stream to fp32.
+    """
+
+    def encode_image(self, videos):
+        """``[1, 3, H, W]`` frames per sample -> the 31-block features, as master."""
+        size = (self.model.image_size,) * 2
+        frames = torch.cat([F.interpolate(u.to(torch.float16), size=size, mode="bicubic",
+                                          align_corners=False) for u in videos])
+        frames = self.transforms.transforms[-1](frames.mul(0.5).add(0.5))
+        visual = self.model.visual
+        x = visual.patch_embedding(frames).flatten(2).permute(0, 2, 1)
+        x = torch.cat([visual.cls_embedding.expand(x.size(0), -1, -1), x], dim=1)
+        x = visual.dropout(x + visual.pos_embedding)
+        if visual.pre_norm is not None:
+            x = visual.pre_norm(x)
+        return visual.transformer[:-1](x)
